@@ -1,5 +1,5 @@
 [project]
-name = "jovimetrix"
+name = "jovimetrix-was"
 description = "Animation via tick. Parameter manipulation with wave generator. Unary and Binary math support. Value convert int/float/bool, VectorN and Image, Mask types. Shape mask generator. Stack images, do channel ops, split, merge and randomize arrays and batches. Load images and video from your folders. Dynamic bus routing. Flatten, crop, transform; check colorblindness or linear interpolate values."
 version = "3.0.0"
 license = { file = "LICENSE" }
