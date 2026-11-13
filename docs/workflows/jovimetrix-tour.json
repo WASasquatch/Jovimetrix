@@ -1,0 +1,3090 @@
+{
+  "id": "5702a330-dd9b-4c2b-bfc0-750f8d6f0e81",
+  "revision": 0,
+  "last_node_id": 20,
+  "last_link_id": 20,
+  "nodes": [
+    {
+      "id": 1,
+      "type": "SHAPE GEN (JOV) ✨",
+      "pos": [
+        40,
+        120
+      ],
+      "size": [
+        270,
+        314
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "shape",
+          "name": "shape",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "shape"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sides",
+          "name": "sides",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "sides"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "color",
+          "name": "color",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "color"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "matte",
+          "name": "matte",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "matte"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "wh",
+          "name": "wh",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "wh"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "xy",
+          "name": "xy",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "xy"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "angle",
+          "name": "angle",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "angle"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "size",
+          "name": "size",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "size"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "edge",
+          "name": "edge",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "edge"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "blur",
+          "name": "blur",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "blur"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "RGBA",
+          "name": "RGBA",
+          "type": "IMAGE",
+          "links": [
+            1
+          ]
+        },
+        {
+          "localized_name": "RGB",
+          "name": "RGB",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "SHAPE GEN (JOV) ✨"
+      },
+      "widgets_values": [
+        "POLYGON",
+        6,
+        {
+          "0": 40,
+          "1": 140,
+          "2": 220,
+          "3": 255
+        },
+        [
+          0,
+          0,
+          0,
+          255
+        ],
+        {
+          "0": 512,
+          "1": 512
+        },
+        [
+          0,
+          0
+        ],
+        0,
+        {
+          "0": 0.9,
+          "1": 0.9
+        },
+        "CLIP",
+        4
+      ],
+      "widgets_values_named": {
+        "shape": "POLYGON",
+        "sides": 6,
+        "color": {
+          "0": 40,
+          "1": 140,
+          "2": 220,
+          "3": 255
+        },
+        "matte": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "wh": {
+          "0": 512,
+          "1": 512
+        },
+        "xy": [
+          0,
+          0
+        ],
+        "angle": 0,
+        "size": {
+          "0": 0.9,
+          "1": 0.9
+        },
+        "edge": "CLIP",
+        "blur": 4
+      }
+    },
+    {
+      "id": 2,
+      "type": "TEXT GEN (JOV) 📝",
+      "pos": [
+        40,
+        554
+      ],
+      "size": [
+        400,
+        512
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "string",
+          "name": "string",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "string"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "font",
+          "name": "font",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "font"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "letter",
+          "name": "letter",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "letter"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "autosize",
+          "name": "autosize",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "autosize"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "color",
+          "name": "color",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "color"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "matte",
+          "name": "matte",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "matte"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "cols",
+          "name": "cols",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "cols"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "size",
+          "name": "size",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "size"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "align",
+          "name": "align",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "align"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "justify",
+          "name": "justify",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "justify"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "margin",
+          "name": "margin",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "margin"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "spacing",
+          "name": "spacing",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "spacing"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "wh",
+          "name": "wh",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "wh"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "xy",
+          "name": "xy",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "xy"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "angle",
+          "name": "angle",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "angle"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "edge",
+          "name": "edge",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "edge"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "invert",
+          "name": "invert",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "invert"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "RGBA",
+          "name": "RGBA",
+          "type": "IMAGE",
+          "links": [
+            2
+          ]
+        },
+        {
+          "localized_name": "RGB",
+          "name": "RGB",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "TEXT GEN (JOV) 📝"
+      },
+      "widgets_values": [
+        "JOVIMETRIX",
+        "Arial",
+        false,
+        true,
+        {
+          "0": 255,
+          "1": 200,
+          "2": 40,
+          "3": 255
+        },
+        [
+          0,
+          0,
+          0,
+          255
+        ],
+        0,
+        16,
+        "CENTER",
+        "CENTER",
+        40,
+        0,
+        {
+          "0": 512,
+          "1": 512
+        },
+        [
+          0,
+          0
+        ],
+        0,
+        "CLIP",
+        false
+      ],
+      "widgets_values_named": {
+        "string": "JOVIMETRIX",
+        "font": "Arial",
+        "letter": false,
+        "autosize": true,
+        "color": {
+          "0": 255,
+          "1": 200,
+          "2": 40,
+          "3": 255
+        },
+        "matte": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "cols": 0,
+        "size": 16,
+        "align": "CENTER",
+        "justify": "CENTER",
+        "margin": 40,
+        "spacing": 0,
+        "wh": {
+          "0": 512,
+          "1": 512
+        },
+        "xy": [
+          0,
+          0
+        ],
+        "angle": 0,
+        "edge": "CLIP",
+        "invert": false
+      }
+    },
+    {
+      "id": 3,
+      "type": "BLEND (JOV) ⚗️",
+      "pos": [
+        520,
+        120
+      ],
+      "size": [
+        270,
+        290
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "back",
+          "name": "back",
+          "shape": 7,
+          "type": "IMAGE,MASK",
+          "link": 1
+        },
+        {
+          "localized_name": "fore",
+          "name": "fore",
+          "shape": 7,
+          "type": "IMAGE,MASK",
+          "link": 2
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "shape": 7,
+          "type": "IMAGE,MASK",
+          "link": null
+        },
+        {
+          "localized_name": "func",
+          "name": "func",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "func"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "alpha",
+          "name": "alpha",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "alpha"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "swap",
+          "name": "swap",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "swap"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "invert",
+          "name": "invert",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "invert"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mode",
+          "name": "mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "wh",
+          "name": "wh",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "wh"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sample",
+          "name": "sample",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "sample"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "matte",
+          "name": "matte",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "matte"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "input",
+          "name": "input",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "input"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "RGBA",
+          "name": "RGBA",
+          "type": "IMAGE",
+          "links": [
+            3
+          ]
+        },
+        {
+          "localized_name": "RGB",
+          "name": "RGB",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "BLEND (JOV) ⚗️"
+      },
+      "widgets_values": [
+        "NORMAL",
+        1,
+        false,
+        false,
+        "MATTE",
+        [
+          512,
+          512
+        ],
+        "LANCZOS4",
+        [
+          0,
+          0,
+          0,
+          255
+        ],
+        "NONE"
+      ],
+      "widgets_values_named": {
+        "func": "NORMAL",
+        "alpha": 1,
+        "swap": false,
+        "invert": false,
+        "mode": "MATTE",
+        "wh": [
+          512,
+          512
+        ],
+        "sample": "LANCZOS4",
+        "matte": [
+          0,
+          0,
+          0,
+          255
+        ],
+        "input": "NONE"
+      }
+    },
+    {
+      "id": 4,
+      "type": "TRANSFORM (JOV) 🏝️",
+      "pos": [
+        870,
+        120
+      ],
+      "size": [
+        270,
+        434
+      ],
+      "flags": {},
+      "order": 10,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE,MASK",
+          "link": 3
+        },
+        {
+          "localized_name": "mask",
+          "name": "mask",
+          "shape": 7,
+          "type": "IMAGE,MASK",
+          "link": null
+        },
+        {
+          "localized_name": "xy",
+          "name": "xy",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "xy"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "angle",
+          "name": "angle",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "angle"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "size",
+          "name": "size",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "size"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "tile",
+          "name": "tile",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "tile"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "edge",
+          "name": "edge",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "edge"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mirror",
+          "name": "mirror",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "mirror"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "pivot",
+          "name": "pivot",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "pivot"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "proj",
+          "name": "proj",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "proj"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "tl-tr",
+          "name": "tl-tr",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "tl-tr"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "bl-br",
+          "name": "bl-br",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "bl-br"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "strength",
+          "name": "strength",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "strength"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mode",
+          "name": "mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "wh",
+          "name": "wh",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "wh"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sample",
+          "name": "sample",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "sample"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "matte",
+          "name": "matte",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "matte"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "RGBA",
+          "name": "RGBA",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "RGB",
+          "name": "RGB",
+          "type": "IMAGE",
+          "links": [
+            4
+          ]
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "TRANSFORM (JOV) 🏝️"
+      },
+      "widgets_values": [
+        [
+          0,
+          0
+        ],
+        -10,
+        {
+          "0": 0.85,
+          "1": 0.85
+        },
+        [
+          1,
+          1
+        ],
+        "CLIP",
+        "NONE",
+        [
+          0.5,
+          0.5
+        ],
+        "NORMAL",
+        [
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          1,
+          1,
+          1
+        ],
+        1,
+        "MATTE",
+        [
+          512,
+          512
+        ],
+        "LANCZOS4",
+        [
+          0,
+          0,
+          0,
+          255
+        ]
+      ],
+      "widgets_values_named": {
+        "xy": [
+          0,
+          0
+        ],
+        "angle": -10,
+        "size": {
+          "0": 0.85,
+          "1": 0.85
+        },
+        "tile": [
+          1,
+          1
+        ],
+        "edge": "CLIP",
+        "mirror": "NONE",
+        "pivot": [
+          0.5,
+          0.5
+        ],
+        "proj": "NORMAL",
+        "tl-tr": [
+          0,
+          0,
+          1,
+          0
+        ],
+        "bl-br": [
+          0,
+          1,
+          1,
+          1
+        ],
+        "strength": 1,
+        "mode": "MATTE",
+        "wh": [
+          512,
+          512
+        ],
+        "sample": "LANCZOS4",
+        "matte": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "type": "PreviewImage",
+      "pos": [
+        1220,
+        120
+      ],
+      "size": [
+        460,
+        420
+      ],
+      "flags": {},
+      "order": 13,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 6,
+      "type": "QUEUE TOO (JOV) 🗃",
+      "pos": [
+        40,
+        1376
+      ],
+      "size": [
+        400,
+        516
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "queue",
+          "name": "queue",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "queue"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "recurse",
+          "name": "recurse",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "recurse"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "batch",
+          "name": "batch",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "batch"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "select",
+          "name": "select",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "select"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "hold",
+          "name": "hold",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "hold"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "stop",
+          "name": "stop",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "stop"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "loop",
+          "name": "loop",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "loop"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "reset",
+          "name": "reset",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "reset"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mode",
+          "name": "mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "wh",
+          "name": "wh",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "wh"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sample",
+          "name": "sample",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "sample"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "matte",
+          "name": "matte",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "matte"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "RGBA",
+          "name": "RGBA",
+          "type": "IMAGE",
+          "links": [
+            5,
+            7
+          ]
+        },
+        {
+          "localized_name": "RGB",
+          "name": "RGB",
+          "type": "IMAGE",
+          "links": [
+            9
+          ]
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        },
+        {
+          "localized_name": "CURRENT",
+          "name": "CURRENT",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "localized_name": "INDEX",
+          "name": "INDEX",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "localized_name": "TOTAL",
+          "name": "TOTAL",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "localized_name": "TRIGGER",
+          "name": "TRIGGER",
+          "type": "BOOLEAN",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "QUEUE TOO (JOV) 🗃"
+      },
+      "widgets_values": [
+        "./res/img/test-a.png",
+        false,
+        false,
+        0,
+        false,
+        false,
+        true,
+        false,
+        "MATTE",
+        [
+          512,
+          512
+        ],
+        "LANCZOS4",
+        [
+          0,
+          0,
+          0,
+          255
+        ]
+      ],
+      "widgets_values_named": {
+        "queue": "./res/img/test-a.png",
+        "recurse": false,
+        "batch": false,
+        "select": 0,
+        "hold": false,
+        "stop": false,
+        "loop": true,
+        "reset": false,
+        "mode": "MATTE",
+        "wh": [
+          512,
+          512
+        ],
+        "sample": "LANCZOS4",
+        "matte": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    },
+    {
+      "id": 7,
+      "type": "QUEUE TOO (JOV) 🗃",
+      "pos": [
+        40,
+        2012
+      ],
+      "size": [
+        400,
+        516
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "queue",
+          "name": "queue",
+          "shape": 7,
+          "type": "STRING",
+          "widget": {
+            "name": "queue"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "recurse",
+          "name": "recurse",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "recurse"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "batch",
+          "name": "batch",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "batch"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "select",
+          "name": "select",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "select"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "hold",
+          "name": "hold",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "hold"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "stop",
+          "name": "stop",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "stop"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "loop",
+          "name": "loop",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "loop"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "reset",
+          "name": "reset",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "reset"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mode",
+          "name": "mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "wh",
+          "name": "wh",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "wh"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sample",
+          "name": "sample",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "sample"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "matte",
+          "name": "matte",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "matte"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "RGBA",
+          "name": "RGBA",
+          "type": "IMAGE",
+          "links": [
+            8
+          ]
+        },
+        {
+          "localized_name": "RGB",
+          "name": "RGB",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        },
+        {
+          "localized_name": "CURRENT",
+          "name": "CURRENT",
+          "type": "STRING",
+          "links": null
+        },
+        {
+          "localized_name": "INDEX",
+          "name": "INDEX",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "localized_name": "TOTAL",
+          "name": "TOTAL",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "localized_name": "TRIGGER",
+          "name": "TRIGGER",
+          "type": "BOOLEAN",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "QUEUE TOO (JOV) 🗃"
+      },
+      "widgets_values": [
+        "./res/img/color-a.png",
+        false,
+        false,
+        0,
+        false,
+        false,
+        true,
+        false,
+        "MATTE",
+        [
+          512,
+          512
+        ],
+        "LANCZOS4",
+        [
+          0,
+          0,
+          0,
+          255
+        ]
+      ],
+      "widgets_values_named": {
+        "queue": "./res/img/color-a.png",
+        "recurse": false,
+        "batch": false,
+        "select": 0,
+        "hold": false,
+        "stop": false,
+        "loop": true,
+        "reset": false,
+        "mode": "MATTE",
+        "wh": [
+          512,
+          512
+        ],
+        "sample": "LANCZOS4",
+        "matte": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    },
+    {
+      "id": 8,
+      "type": "ADJUST: LEVELS (JOV)",
+      "pos": [
+        520,
+        1376
+      ],
+      "size": [
+        270,
+        170
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE,MASK",
+          "link": 5
+        },
+        {
+          "localized_name": "lmh",
+          "name": "lmh",
+          "shape": 7,
+          "type": "VEC3",
+          "widget": {
+            "name": "lmh"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "range",
+          "name": "range",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "range"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mode",
+          "name": "mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "clip",
+          "name": "clip",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "clip"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "RGBA",
+          "name": "RGBA",
+          "type": "IMAGE",
+          "links": [
+            6
+          ]
+        },
+        {
+          "localized_name": "RGB",
+          "name": "RGB",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "ADJUST: LEVELS (JOV)"
+      },
+      "widgets_values": [
+        [
+          0,
+          0.5,
+          1
+        ],
+        [
+          0,
+          1
+        ],
+        "AUTO",
+        0.5
+      ],
+      "widgets_values_named": {
+        "lmh": [
+          0,
+          0.5,
+          1
+        ],
+        "range": [
+          0,
+          1
+        ],
+        "mode": "AUTO",
+        "clip": 0.5
+      }
+    },
+    {
+      "id": 9,
+      "type": "COLOR MATCH (JOV) 💞",
+      "pos": [
+        870,
+        1376
+      ],
+      "size": [
+        270,
+        242
+      ],
+      "flags": {},
+      "order": 11,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "source",
+          "name": "source",
+          "shape": 7,
+          "type": "IMAGE,MASK",
+          "link": 6
+        },
+        {
+          "localized_name": "target",
+          "name": "target",
+          "shape": 7,
+          "type": "IMAGE,MASK",
+          "link": null
+        },
+        {
+          "localized_name": "mode",
+          "name": "mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "map",
+          "name": "map",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "map"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "colormap",
+          "name": "colormap",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "colormap"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "value",
+          "name": "value",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "swap",
+          "name": "swap",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "swap"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "invert",
+          "name": "invert",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "invert"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "matte",
+          "name": "matte",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "matte"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "RGBA",
+          "name": "RGBA",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "RGB",
+          "name": "RGB",
+          "type": "IMAGE",
+          "links": [
+            10
+          ]
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "COLOR MATCH (JOV) 💞"
+      },
+      "widgets_values": [
+        "LUT",
+        "PRESET_MAP",
+        "TWILIGHT",
+        255,
+        false,
+        false,
+        [
+          0,
+          0,
+          0,
+          255
+        ]
+      ],
+      "widgets_values_named": {
+        "mode": "LUT",
+        "map": "PRESET_MAP",
+        "colormap": "TWILIGHT",
+        "value": 255,
+        "swap": false,
+        "invert": false,
+        "matte": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "type": "GRADIENT MAP (JOV) 🇲🇺",
+      "pos": [
+        520,
+        1666
+      ],
+      "size": [
+        270,
+        194
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE,MASK",
+          "link": 7
+        },
+        {
+          "localized_name": "gradient",
+          "name": "gradient",
+          "shape": 7,
+          "type": "IMAGE,MASK",
+          "link": 8
+        },
+        {
+          "localized_name": "reverse",
+          "name": "reverse",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "reverse"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mode",
+          "name": "mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "wh",
+          "name": "wh",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "wh"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sample",
+          "name": "sample",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "sample"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "matte",
+          "name": "matte",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "matte"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "RGBA",
+          "name": "RGBA",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "RGB",
+          "name": "RGB",
+          "type": "IMAGE",
+          "links": [
+            11
+          ]
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GRADIENT MAP (JOV) 🇲🇺"
+      },
+      "widgets_values": [
+        false,
+        "MATTE",
+        [
+          512,
+          512
+        ],
+        "LANCZOS4",
+        [
+          0,
+          0,
+          0,
+          255
+        ]
+      ],
+      "widgets_values_named": {
+        "reverse": false,
+        "mode": "MATTE",
+        "wh": [
+          512,
+          512
+        ],
+        "sample": "LANCZOS4",
+        "matte": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    },
+    {
+      "id": 11,
+      "type": "STACK (JOV) ➕",
+      "pos": [
+        1220,
+        1376
+      ],
+      "size": [
+        270,
+        238
+      ],
+      "flags": {},
+      "order": 14,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "axis",
+          "name": "axis",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "axis"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "step",
+          "name": "step",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "step"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "mode",
+          "name": "mode",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "mode"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "wh",
+          "name": "wh",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "wh"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "sample",
+          "name": "sample",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "sample"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "matte",
+          "name": "matte",
+          "shape": 7,
+          "type": "VEC4",
+          "widget": {
+            "name": "matte"
+          },
+          "link": null
+        },
+        {
+          "name": "0_RGB",
+          "type": "IMAGE",
+          "link": 9
+        },
+        {
+          "name": "1_RGB",
+          "type": "IMAGE",
+          "link": 10
+        },
+        {
+          "name": "2_RGB",
+          "type": "IMAGE",
+          "link": 11
+        },
+        {
+          "name": "image",
+          "type": "*",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "RGBA",
+          "name": "RGBA",
+          "type": "IMAGE",
+          "links": null
+        },
+        {
+          "localized_name": "RGB",
+          "name": "RGB",
+          "type": "IMAGE",
+          "links": [
+            12
+          ]
+        },
+        {
+          "localized_name": "MASK",
+          "name": "MASK",
+          "type": "MASK",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "STACK (JOV) ➕"
+      },
+      "widgets_values": [
+        "HORIZONTAL",
+        1,
+        "MATTE",
+        [
+          512,
+          512
+        ],
+        "LANCZOS4",
+        [
+          0,
+          0,
+          0,
+          255
+        ]
+      ],
+      "widgets_values_named": {
+        "axis": "HORIZONTAL",
+        "step": 1,
+        "mode": "MATTE",
+        "wh": [
+          512,
+          512
+        ],
+        "sample": "LANCZOS4",
+        "matte": [
+          0,
+          0,
+          0,
+          255
+        ]
+      }
+    },
+    {
+      "id": 12,
+      "type": "PreviewImage",
+      "pos": [
+        1570,
+        1376
+      ],
+      "size": [
+        460,
+        420
+      ],
+      "flags": {},
+      "order": 16,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 12
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 13,
+      "type": "TICK (JOV) ⏱",
+      "pos": [
+        40,
+        2838
+      ],
+      "size": [
+        270,
+        306
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "start",
+          "name": "start",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "start"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "step",
+          "name": "step",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "step"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "count",
+          "name": "count",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "count"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "loop",
+          "name": "loop",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "loop"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "pingpong",
+          "name": "pingpong",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "pingpong"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "ease",
+          "name": "ease",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "ease"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "norm",
+          "name": "norm",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "norm"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "scalar",
+          "name": "scalar",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "scalar"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "VALUE",
+          "name": "VALUE",
+          "shape": 6,
+          "type": "FLOAT",
+          "links": null
+        },
+        {
+          "localized_name": "LINEAR",
+          "name": "LINEAR",
+          "shape": 6,
+          "type": "FLOAT",
+          "links": [
+            13
+          ]
+        },
+        {
+          "localized_name": "EASED",
+          "name": "EASED",
+          "shape": 6,
+          "type": "FLOAT",
+          "links": [
+            17
+          ]
+        },
+        {
+          "localized_name": "SCALAR_LIN",
+          "name": "SCALAR_LIN",
+          "shape": 6,
+          "type": "FLOAT",
+          "links": null
+        },
+        {
+          "localized_name": "SCALAR_EASE",
+          "name": "SCALAR_EASE",
+          "shape": 6,
+          "type": "FLOAT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "TICK (JOV) ⏱"
+      },
+      "widgets_values": [
+        0,
+        1,
+        48,
+        0,
+        false,
+        "QUAD_IN_OUT",
+        "MINMAX1",
+        1
+      ],
+      "widgets_values_named": {
+        "start": 0,
+        "step": 1,
+        "count": 48,
+        "loop": 0,
+        "pingpong": false,
+        "ease": "QUAD_IN_OUT",
+        "norm": "MINMAX1",
+        "scalar": 1
+      }
+    },
+    {
+      "id": 14,
+      "type": "WAVE GEN (JOV) 🌊",
+      "pos": [
+        390,
+        2838
+      ],
+      "size": [
+        270,
+        246
+      ],
+      "flags": {},
+      "order": 9,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "wave",
+          "name": "wave",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "wave"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "freq",
+          "name": "freq",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "freq"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "amp",
+          "name": "amp",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "amp"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "phase",
+          "name": "phase",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "phase"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "offset",
+          "name": "offset",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "offset"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "time",
+          "name": "time",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "time"
+          },
+          "link": 13
+        },
+        {
+          "localized_name": "invert",
+          "name": "invert",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "invert"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "absolute",
+          "name": "absolute",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "absolute"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "FLOAT",
+          "name": "FLOAT",
+          "shape": 6,
+          "type": "FLOAT",
+          "links": [
+            14
+          ]
+        },
+        {
+          "localized_name": "INT",
+          "name": "INT",
+          "shape": 6,
+          "type": "INT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "WAVE GEN (JOV) 🌊"
+      },
+      "widgets_values": [
+        "SIN",
+        2,
+        1,
+        0,
+        0,
+        0,
+        false,
+        false
+      ],
+      "widgets_values_named": {
+        "wave": "SIN",
+        "freq": 2,
+        "amp": 1,
+        "phase": 0,
+        "offset": 0,
+        "time": 0,
+        "invert": false,
+        "absolute": false
+      }
+    },
+    {
+      "id": 15,
+      "type": "VALUE (JOV) 🧬",
+      "pos": [
+        40,
+        3264
+      ],
+      "size": [
+        270,
+        234
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "a",
+          "name": "a",
+          "shape": 7,
+          "type": "*",
+          "link": null
+        },
+        {
+          "localized_name": "x",
+          "name": "x",
+          "shape": 7,
+          "type": "BOOLEAN,FLOAT,INT,VEC2,VEC3,VEC4",
+          "link": null
+        },
+        {
+          "localized_name": "y",
+          "name": "y",
+          "shape": 7,
+          "type": "BOOLEAN,FLOAT,INT,VEC2,VEC3,VEC4",
+          "link": null
+        },
+        {
+          "localized_name": "z",
+          "name": "z",
+          "shape": 7,
+          "type": "BOOLEAN,FLOAT,INT,VEC2,VEC3,VEC4",
+          "link": null
+        },
+        {
+          "localized_name": "w",
+          "name": "w",
+          "shape": 7,
+          "type": "BOOLEAN,FLOAT,INT,VEC2,VEC3,VEC4",
+          "link": null
+        },
+        {
+          "localized_name": "type",
+          "name": "type",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "type"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "aa",
+          "name": "aa",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "aa"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "bb",
+          "name": "bb",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "bb"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "seed",
+          "name": "seed",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "seed"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "❔",
+          "name": "FLOAT",
+          "shape": 6,
+          "type": "FLOAT",
+          "links": [
+            15
+          ]
+        },
+        {
+          "localized_name": "x",
+          "name": "x",
+          "shape": 6,
+          "type": "FLOAT",
+          "links": null
+        },
+        {
+          "localized_name": "y",
+          "name": "y",
+          "shape": 6,
+          "type": "FLOAT",
+          "links": null
+        },
+        {
+          "localized_name": "z",
+          "name": "z",
+          "shape": 6,
+          "type": "FLOAT",
+          "links": null
+        },
+        {
+          "localized_name": "w",
+          "name": "w",
+          "shape": 6,
+          "type": "FLOAT",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "VALUE (JOV) 🧬"
+      },
+      "widgets_values": [
+        "FLOAT",
+        {
+          "0": "0.00"
+        },
+        {
+          "0": "1.00"
+        },
+        439378099876402,
+        "randomize"
+      ],
+      "widgets_values_named": {
+        "type": "FLOAT",
+        "aa": {
+          "0": "0.00"
+        },
+        "bb": {
+          "0": "1.00"
+        },
+        "seed": 439378099876402,
+        "control_after_generate": "randomize"
+      }
+    },
+    {
+      "id": 16,
+      "type": "OP BINARY (JOV) 🌟",
+      "pos": [
+        740,
+        2838
+      ],
+      "size": [
+        270,
+        174
+      ],
+      "flags": {},
+      "order": 12,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "a",
+          "name": "a",
+          "shape": 7,
+          "type": "BOOLEAN,FLOAT,INT,VEC2,VEC3,VEC4,IMAGE,MASK",
+          "link": 14
+        },
+        {
+          "localized_name": "b",
+          "name": "b",
+          "shape": 7,
+          "type": "BOOLEAN,FLOAT,INT,VEC2,VEC3,VEC4,IMAGE,MASK",
+          "link": 15
+        },
+        {
+          "localized_name": "func",
+          "name": "func",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "func"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "type",
+          "name": "type",
+          "shape": 7,
+          "type": "COMBO",
+          "widget": {
+            "name": "type"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "swap",
+          "name": "swap",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "swap"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "aa",
+          "name": "aa",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "aa"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "bb",
+          "name": "bb",
+          "shape": 7,
+          "type": "FLOAT",
+          "widget": {
+            "name": "bb"
+          },
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "❔",
+          "name": "❔",
+          "shape": 6,
+          "type": "*",
+          "links": [
+            16
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "OP BINARY (JOV) 🌟"
+      },
+      "widgets_values": [
+        "MULTIPLY",
+        "FLOAT",
+        false,
+        {
+          "0": "0.00"
+        },
+        {
+          "0": "0.00"
+        }
+      ],
+      "widgets_values_named": {
+        "func": "MULTIPLY",
+        "type": "FLOAT",
+        "swap": false,
+        "aa": {
+          "0": "0.00"
+        },
+        "bb": {
+          "0": "0.00"
+        }
+      }
+    },
+    {
+      "id": 17,
+      "type": "GRAPH (JOV) 📈",
+      "pos": [
+        1090,
+        2838
+      ],
+      "size": [
+        270,
+        146
+      ],
+      "flags": {},
+      "order": 15,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "reset",
+          "name": "reset",
+          "shape": 7,
+          "type": "BOOLEAN",
+          "widget": {
+            "name": "reset"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "value",
+          "name": "value",
+          "shape": 7,
+          "type": "INT",
+          "widget": {
+            "name": "value"
+          },
+          "link": null
+        },
+        {
+          "localized_name": "wh",
+          "name": "wh",
+          "shape": 7,
+          "type": "VEC2",
+          "widget": {
+            "name": "wh"
+          },
+          "link": null
+        },
+        {
+          "name": "0_❔",
+          "type": "*",
+          "link": 16
+        },
+        {
+          "name": "1_EASED",
+          "type": "FLOAT",
+          "link": 17
+        },
+        {
+          "name": "❔",
+          "type": "*",
+          "link": null
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "IMAGE",
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            18,
+            19
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "GRAPH (JOV) 📈"
+      },
+      "widgets_values": [
+        false,
+        48,
+        {
+          "0": 512,
+          "1": 320
+        }
+      ],
+      "widgets_values_named": {
+        "reset": false,
+        "value": 48,
+        "wh": {
+          "0": 512,
+          "1": 320
+        }
+      }
+    },
+    {
+      "id": 18,
+      "type": "PreviewImage",
+      "pos": [
+        1440,
+        2838
+      ],
+      "size": [
+        460,
+        420
+      ],
+      "flags": {},
+      "order": 17,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "link": 18
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "images",
+          "name": "images",
+          "type": "IMAGE",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    },
+    {
+      "id": 19,
+      "type": "IMAGE INFO (JOV) 📚",
+      "pos": [
+        1440,
+        3378
+      ],
+      "size": [
+        144.722265625,
+        126
+      ],
+      "flags": {},
+      "order": 18,
+      "mode": 0,
+      "inputs": [
+        {
+          "localized_name": "image",
+          "name": "image",
+          "shape": 7,
+          "type": "IMAGE,MASK",
+          "link": 19
+        }
+      ],
+      "outputs": [
+        {
+          "localized_name": "COUNT",
+          "name": "COUNT",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "localized_name": "W",
+          "name": "W",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "localized_name": "H",
+          "name": "H",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "localized_name": "C",
+          "name": "C",
+          "type": "INT",
+          "links": null
+        },
+        {
+          "localized_name": "WH",
+          "name": "WH",
+          "type": "VEC2",
+          "links": [
+            20
+          ]
+        },
+        {
+          "localized_name": "WHC",
+          "name": "WHC",
+          "type": "VEC3",
+          "links": null
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "IMAGE INFO (JOV) 📚"
+      }
+    },
+    {
+      "id": 20,
+      "type": "AKASHIC (JOV) 📓",
+      "pos": [
+        1440,
+        3624
+      ],
+      "size": [
+        210,
+        98
+      ],
+      "flags": {},
+      "order": 19,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "0_WH",
+          "type": "VEC2",
+          "link": 20
+        },
+        {
+          "name": "📥",
+          "type": "*",
+          "link": null
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "Node name for S&R": "AKASHIC (JOV) 📓"
+      },
+      "widgets_values": [],
+      "widgets_values_named": {}
+    }
+  ],
+  "links": [
+    [
+      1,
+      1,
+      0,
+      3,
+      0,
+      "IMAGE"
+    ],
+    [
+      2,
+      2,
+      0,
+      3,
+      1,
+      "IMAGE"
+    ],
+    [
+      3,
+      3,
+      0,
+      4,
+      0,
+      "IMAGE"
+    ],
+    [
+      4,
+      4,
+      1,
+      5,
+      0,
+      "IMAGE"
+    ],
+    [
+      5,
+      6,
+      0,
+      8,
+      0,
+      "IMAGE"
+    ],
+    [
+      6,
+      8,
+      0,
+      9,
+      0,
+      "IMAGE"
+    ],
+    [
+      7,
+      6,
+      0,
+      10,
+      0,
+      "IMAGE"
+    ],
+    [
+      8,
+      7,
+      0,
+      10,
+      1,
+      "IMAGE"
+    ],
+    [
+      9,
+      6,
+      1,
+      11,
+      6,
+      "IMAGE"
+    ],
+    [
+      10,
+      9,
+      1,
+      11,
+      7,
+      "IMAGE"
+    ],
+    [
+      11,
+      10,
+      1,
+      11,
+      8,
+      "IMAGE"
+    ],
+    [
+      12,
+      11,
+      1,
+      12,
+      0,
+      "IMAGE"
+    ],
+    [
+      13,
+      13,
+      1,
+      14,
+      5,
+      "FLOAT"
+    ],
+    [
+      14,
+      14,
+      0,
+      16,
+      0,
+      "FLOAT"
+    ],
+    [
+      15,
+      15,
+      0,
+      16,
+      1,
+      "FLOAT"
+    ],
+    [
+      16,
+      16,
+      0,
+      17,
+      3,
+      "*"
+    ],
+    [
+      17,
+      13,
+      2,
+      17,
+      4,
+      "FLOAT"
+    ],
+    [
+      18,
+      17,
+      0,
+      18,
+      0,
+      "IMAGE"
+    ],
+    [
+      19,
+      17,
+      0,
+      19,
+      0,
+      "IMAGE"
+    ],
+    [
+      20,
+      19,
+      4,
+      20,
+      0,
+      "VEC2"
+    ]
+  ],
+  "groups": [
+    {
+      "id": 1,
+      "title": "Shapes, text and blending",
+      "bounding": [
+        0,
+        0,
+        1720,
+        1136
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 2,
+      "title": "Adjusting and colouring a picture",
+      "bounding": [
+        0,
+        1256,
+        2070,
+        1342
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    },
+    {
+      "id": 3,
+      "title": "Animating values",
+      "bounding": [
+        0,
+        2718,
+        1940,
+        1074
+      ],
+      "color": "#3f789e",
+      "flags": {}
+    }
+  ],
+  "config": {},
+  "extra": {
+    "ds": {
+      "scale": 0.19674711437565578,
+      "offset": [
+        3031.1333333333337,
+        645.3333333333335
+      ]
+    }
+  },
+  "version": 0.4
+}

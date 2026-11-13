@@ -1,8 +1,53 @@
-/**/
+/**
+ * The VEC2, VEC3 and VEC4 widget: one field per component, typed, dragged or picked as a colour.
+ */
 
 import { app } from "../../scripts/app.js"
-import { $el } from "../../scripts/ui.js"
 /** @import { IWidget, LGraphCanvas } from '../../types/litegraph/litegraph.d.ts' */
+
+/**
+ * Evaluate arithmetic typed into a field: numbers, + - * /, parentheses and unary minus.
+ *
+ * @param {string} text - The typed text.
+ * @returns {number} The value, or NaN when the text is not arithmetic.
+ */
+function evaluateArithmetic(text) {
+    const tokens = String(text).match(/\d+\.?\d*(?:e[+-]?\d+)?|\.\d+(?:e[+-]?\d+)?|[-+*/()]|\S/gi) || [];
+    let pos = 0;
+    const peek = () => tokens[pos];
+    const take = () => tokens[pos++];
+
+    function primary() {
+        const token = take();
+        if (token === "(") {
+            const value = sum();
+            if (take() !== ")") return NaN;
+            return value;
+        }
+        if (token === "-") return -primary();
+        if (token === "+") return primary();
+        const value = Number(token);
+        return Number.isFinite(value) ? value : NaN;
+    }
+    function product() {
+        let value = primary();
+        while (peek() === "*" || peek() === "/") {
+            value = take() === "*" ? value * primary() : value / primary();
+        }
+        return value;
+    }
+    function sum() {
+        let value = product();
+        while (peek() === "+" || peek() === "-") {
+            value = take() === "+" ? value + product() : value - product();
+        }
+        return value;
+    }
+
+    if (tokens.length === 0 || tokens.length > 256) return NaN;
+    const result = sum();
+    return pos === tokens.length && Number.isFinite(result) ? result : NaN;
+}
 
 function arrayToObject(values, length, parseFn) {
     const result = {};
@@ -157,7 +202,9 @@ const VectorWidget = (app, inputName, options, initial) => {
     }
 
     /**
-     * @todo ▶️, 🖱️, 😀
+     * Click a field to type a value, drag across it to step it, click the label with shift to
+     * reset, and click the swatch of a colour widget to pick a colour.
+     *
      * @this IWidget
      */
     widget.onPointerDown = function (pointer, node, canvas) {
@@ -178,16 +225,9 @@ const VectorWidget = (app, inputName, options, initial) => {
                 const old_value = { ...this.value };
                 const label = this.options?.label ? this.name + '➖' + this.options.label?.[index] : this.name;
 
-                LGraphCanvas.active_canvas.prompt(label, this.value[index], function(v) {
-                    if (/^[0-9+\-*/()\s]+|\d+\.\d+$/.test(v)) {
-                        try {
-                            v = eval(v);
-                        } catch {
-                            v = old_value[index];
-                        }
-                    } else {
-                        v = old_value[index];
-                    }
+                (canvas ?? app.canvas).prompt(label, this.value[index], function(v) {
+                    const parsed = evaluateArithmetic(v);
+                    v = Number.isNaN(parsed) ? old_value[index] : parsed;
 
                     if (this.value[index] != v) {
                         setTimeout(
@@ -212,23 +252,18 @@ const VectorWidget = (app, inputName, options, initial) => {
             }
 
             if (!picker) {
-                // firefox?
-                //position: "absolute", // Use absolute positioning for consistency
-                //left: `${eUp.pageX}px`, // Use pageX for more consistent placement
-                //top: `${eUp.pageY}px`,
-                picker = $el("input", {
-                    type: "color",
-                    parent: document.body,
-                    style: {
-                        position: "fixed",
-                        left: `${eUp.clientX}px`,
-                        top: `${eUp.clientY}px`,
-                        height: "0px",
-                        width: "0px",
-                        padding: "0px",
-                        opacity: 0,
-                    },
+                picker = document.createElement("input");
+                picker.type = "color";
+                Object.assign(picker.style, {
+                    position: "fixed",
+                    left: `${eUp.clientX}px`,
+                    top: `${eUp.clientY}px`,
+                    height: "0px",
+                    width: "0px",
+                    padding: "0px",
+                    opacity: 0,
                 });
+                document.body.appendChild(picker);
                 picker.addEventListener('blur', () => picker.style.display = 'none')
                 picker.addEventListener('input', () => {
                     if (!picker.value) return;

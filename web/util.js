@@ -13,29 +13,69 @@ export const TypeSlotEvent = {
     Disconnect: false,
 };
 
-export async function apiJovimetrix(id, cmd, data=null, route="message", ) {
+/**
+ * Send a message to a running Jovimetrix node, from this tab.
+ *
+ * @param {string|number} id - The node's id.
+ * @param {string|boolean} cmd - The command, such as "reset", or true / false for DELAY.
+ * @returns {Promise<Response|undefined>} The server's answer, or undefined when it failed.
+ */
+export async function apiJovimetrix(id, cmd) {
     try {
-        const response = await api.fetchApi(`/cozy_comfyui/${route}`, {
+        const response = await api.fetchApi("/jovimetrix/message", {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                id: id,
+                id: String(id),
                 cmd: cmd,
-                data: data
+                client_id: api.clientId ?? api.initialClientId ?? null,
             }),
         });
-
         if (!response.ok) {
-            throw new Error(`Error: ${response.status} - ${response.statusText}`);
+            console.warn(`[Jovimetrix] message to node ${id} refused: ${response.status}`);
         }
         return response;
-
     } catch (error) {
-        console.error("API call to Jovimetrix failed:", error);
-        throw error;
+        console.error("[Jovimetrix] message to node failed:", error);
     }
+}
+
+/**
+ * Append a read-only text box to a node. Its value is display only and never sent to the server.
+ *
+ * @param {LGraphNode} node - The node.
+ * @param {string} name - Widget name.
+ * @param {string} [text] - Initial text.
+ * @returns {object} The widget; set `widget.value` to change the text.
+ */
+export function addTextDisplay(node, name, text = "") {
+    const element = document.createElement("textarea");
+    element.readOnly = true;
+    element.value = text;
+    Object.assign(element.style, {
+        width: "100%", height: "100%", boxSizing: "border-box", resize: "none",
+        margin: "1px", padding: "2px", border: "1px solid #333", borderRadius: "3px",
+        backgroundColor: "#222", color: "var(--input-text, #ddd)",
+        fontFamily: "monospace", fontSize: "11px",
+    });
+    const widget = node.addDOMWidget(name, "jov_text", element, {
+        getValue: () => element.value,
+        setValue: (value) => { element.value = String(value ?? ""); },
+        getMinHeight: () => 40,
+        serialize: false,
+    });
+    widget.serialize = false;
+    return widget;
+}
+
+/**
+ * The DOM element behind a text widget.
+ *
+ * @param {object} widget - The widget.
+ * @returns {HTMLElement|undefined} Its element.
+ */
+export function widgetElement(widget) {
+    return widget?.element;
 }
 
 /*
@@ -160,22 +200,22 @@ export async function nodeAddDynamic(nodeType, prefix, dynamic_type='*') {
     }
 
     const onConnectionsChange = nodeType.prototype.onConnectionsChange
-    nodeType.prototype.onConnectionsChange = async function (slotType, slot_idx, event, link_info, node_slot) {
+    nodeType.prototype.onConnectionsChange = function (slotType, slot_idx, event, link_info, node_slot) {
         const me = onConnectionsChange?.apply(this, arguments);
+        if (!this.inputs || !node_slot) {
+            return me;
+        }
         const slot_parts = slot_name(node_slot);
-        if ((node_slot.type === dynamic_type || slot_parts.length > 1) && slotType === TypeSlot.Input && link_info !== null) {
-            const fromNode = this.graph._nodes.find(
-                (otherNode) => otherNode.id == link_info.origin_id
-            )
-            const parent_slot = fromNode.outputs[link_info.origin_slot];
+        if ((node_slot.type === dynamic_type || slot_parts.length > 1) && slotType === TypeSlot.Input && link_info) {
             if (event === TypeSlotEvent.Connect) {
-                node_slot.type = parent_slot.type;
-                node_slot.name = `0_${parent_slot.name}`;
+                const fromNode = this.graph?.getNodeById(link_info.origin_id);
+                const parent_slot = fromNode?.outputs?.[link_info.origin_slot];
+                if (parent_slot) {
+                    node_slot.type = parent_slot.type;
+                    node_slot.name = `0_${parent_slot.name}`;
+                }
             } else {
                 this.removeInput(slot_idx);
-                node_slot.type = dynamic_type;
-                node_slot.name = prefix;
-                node_slot.link = null;
             }
 
             // clean off missing slot connects
@@ -191,9 +231,9 @@ export async function nodeAddDynamic(nodeType, prefix, dynamic_type='*') {
                 idx += 1;
             }
         }
-        // check that the last slot is a dynamic entry....
-        let last = this.inputs[this.inputs.length-1];
-        if (last.type != dynamic_type || last.name != prefix) {
+        // The last slot is always an empty one to connect next.
+        const last = this.inputs[this.inputs.length-1];
+        if (!last || last.type != dynamic_type || last.name != prefix) {
             this.addInput(prefix, dynamic_type);
         }
         nodeFitHeight(this);
