@@ -62,7 +62,7 @@ class AdjustBlurNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.adjust import image_blur
         from ..modules.image.channel import channel_solid
-        from ..modules.image.convert import cv_to_tensor_full, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         op = parse_param(kw, "func", EnumAdjustBlur, EnumAdjustBlur.BLUR.name)
@@ -71,9 +71,9 @@ class AdjustBlurNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, op, radius) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             pA = image_blur(pA, op, radius)
-            images.append(cv_to_tensor_full(pA))
+            images.append(frame_outputs(pA))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -113,7 +113,7 @@ class AdjustColorNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.adjust import image_color
         from ..modules.image.channel import channel_solid
-        from ..modules.image.convert import cv_to_tensor_full, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         op = parse_param(kw, "func", EnumAdjustColor, EnumAdjustColor.RGB.name)
@@ -122,9 +122,9 @@ class AdjustColorNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, op, vec) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             pA = image_color(pA, op, vec[0], vec[1], vec[2])
-            images.append(cv_to_tensor_full(pA))
+            images.append(frame_outputs(pA))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -173,7 +173,7 @@ class AdjustEdgeNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.adjust import image_edge
         from ..modules.image.channel import channel_solid
-        from ..modules.image.convert import cv_to_tensor_full, image_convert, image_mask, image_mask_add, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, image_convert, image_mask, image_mask_add, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         op = parse_param(kw, "func", EnumAdjustEdge, EnumAdjustEdge.CANNY.name)
@@ -184,11 +184,11 @@ class AdjustEdgeNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, op, radius, count, lohi) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             alpha = image_mask(pA)
             pA = image_edge(image_convert(pA, 3), op, radius, count, lohi[0], lohi[1])
             pA = image_mask_add(pA, alpha)
-            images.append(cv_to_tensor_full(pA))
+            images.append(frame_outputs(pA))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -232,7 +232,7 @@ class AdjustEmbossNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.adjust import image_emboss
         from ..modules.image.channel import channel_solid
-        from ..modules.image.convert import cv_to_tensor_full, image_mask, image_mask_add, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, image_mask, image_mask_add, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         heading = parse_param(kw, "heading", EnumConvertType.FLOAT, -45)
@@ -242,11 +242,11 @@ class AdjustEmbossNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, heading, elevation, depth) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             alpha = image_mask(pA)
             pA = image_emboss(pA, heading, elevation, depth)
             pA = image_mask_add(pA, alpha)
-            images.append(cv_to_tensor_full(pA))
+            images.append(frame_outputs(pA))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -300,7 +300,7 @@ class AdjustLevelNode(io.ComfyNode):
         from ..modules.image.adjust import image_autolevel, image_autolevel_histogram
         from ..modules.image.channel import channel_solid
         from ..modules.image.compose import image_levels
-        from ..modules.image.convert import cv_to_tensor_full, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         lmh = parse_param(kw, "lmh", EnumConvertType.VEC3, (0, 0.5, 1))
@@ -311,7 +311,7 @@ class AdjustLevelNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, lmh, inout, mode, clip) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             match mode:
                 case EnumAutoLevel.AUTO:
                     pA = image_autolevel(pA)
@@ -321,7 +321,7 @@ class AdjustLevelNode(io.ComfyNode):
                     low, mid, high = lmh
                     start, end = inout
                     pA = image_levels(pA, low, mid, high, start, end)
-            images.append(cv_to_tensor_full(pA))
+            images.append(frame_outputs(pA))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -373,7 +373,7 @@ class AdjustLightNode(io.ComfyNode):
         from ..modules.image.adjust import image_brightness, image_contrast, image_equalize, \
             image_exposure, image_gamma
         from ..modules.image.channel import channel_solid
-        from ..modules.image.convert import cv_to_tensor_full, image_mask, image_mask_add, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, image_mask, image_mask_add, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         brightness = parse_param(kw, "brightness", EnumConvertType.FLOAT, 0.5, 0, 1)
@@ -385,7 +385,7 @@ class AdjustLightNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, brightness, contrast, equalize, exposure, gamma) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             alpha = image_mask(pA)
 
             brightness = 2. * (brightness - 0.5)
@@ -401,7 +401,7 @@ class AdjustLightNode(io.ComfyNode):
                 pA = image_gamma(pA, gamma)
 
             pA = image_mask_add(pA, alpha)
-            images.append(cv_to_tensor_full(pA))
+            images.append(frame_outputs(pA))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -445,7 +445,7 @@ class AdjustMorphNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.adjust import image_morphology
         from ..modules.image.channel import channel_solid
-        from ..modules.image.convert import cv_to_tensor_full, image_mask, image_mask_add, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, image_mask, image_mask_add, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         op = parse_param(kw, "func", EnumAdjustMorpho, EnumAdjustMorpho.DILATE.name)
@@ -455,11 +455,11 @@ class AdjustMorphNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, op, kernel, count) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             alpha = image_mask(pA)
             pA = image_morphology(pA, op, kernel, count)
             pA = image_mask_add(pA, alpha)
-            images.append(cv_to_tensor_full(pA))
+            images.append(frame_outputs(pA))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -500,7 +500,7 @@ class AdjustPixelNode(io.ComfyNode):
         from ..modules.image.adjust import image_pixelate, image_pixelscale, image_posterize, \
             image_quantize
         from ..modules.image.channel import channel_solid
-        from ..modules.image.convert import cv_to_tensor_full, image_mask, image_mask_add, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, image_mask, image_mask_add, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         op = parse_param(kw, "func", EnumAdjustPixel, EnumAdjustPixel.PIXELATE.name)
@@ -509,7 +509,7 @@ class AdjustPixelNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, op, val) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA, chan=4)
+            pA = channel_solid() if pA is None else to_frame(pA, chan=4)
             alpha = image_mask(pA)
             match op:
                 case EnumAdjustPixel.PIXELSCALE:
@@ -521,7 +521,7 @@ class AdjustPixelNode(io.ComfyNode):
                 case _:
                     pA = image_pixelate(pA, val / 2.)
             pA = image_mask_add(pA, alpha)
-            images.append(cv_to_tensor_full(pA))
+            images.append(frame_outputs(pA))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -558,7 +558,7 @@ class AdjustSharpenNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.adjust import image_sharpen
         from ..modules.image.channel import channel_solid
-        from ..modules.image.convert import cv_to_tensor_full, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         amount = parse_param(kw, "amount", EnumConvertType.FLOAT, 0, 0, 1)
@@ -567,9 +567,9 @@ class AdjustSharpenNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, amount, threshold) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             pA = image_sharpen(pA, amount / 2., threshold=threshold / 25.5)
-            images.append(cv_to_tensor_full(pA))
+            images.append(frame_outputs(pA))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 

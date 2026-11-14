@@ -63,7 +63,7 @@ class ColorBlindNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.channel import channel_solid
         from ..modules.image.color import color_blind
-        from ..modules.image.convert import cv_to_tensor_full, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         deficiency = parse_param(kw, "mode", EnumCBDeficiency, EnumCBDeficiency.PROTAN.name)
@@ -73,9 +73,9 @@ class ColorBlindNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, deficiency, simulator, severity) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             pA = color_blind(pA, deficiency, simulator, severity)
-            images.append(cv_to_tensor_full(pA))
+            images.append(frame_outputs(pA))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -135,7 +135,7 @@ class ColorMatchNode(io.ComfyNode):
         from ..modules.image.adjust import image_invert
         from ..modules.image.channel import channel_solid
         from ..modules.image.color import color_lut_match, color_match_reinhard
-        from ..modules.image.convert import cv_to_tensor_full, image_mask, image_mask_add, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, image_mask, image_mask_add, to_frame
 
         pA = parse_param(kw, "source", EnumConvertType.IMAGE, None)
         pB = parse_param(kw, "target", EnumConvertType.IMAGE, None)
@@ -157,10 +157,10 @@ class ColorMatchNode(io.ComfyNode):
             if pA is None:
                 pA = channel_solid()
             else:
-                pA = tensor_to_cv(pA)
+                pA = to_frame(pA)
                 if pA.ndim == 3 and pA.shape[2] == 4:
                     mask = image_mask(pA)
-            pB = channel_solid() if pB is None else tensor_to_cv(pB)
+            pB = channel_solid() if pB is None else to_frame(pB)
 
             if mode == EnumColorMatchMode.LUT:
                 usermap = None if cmap == EnumColorMatchMap.PRESET_MAP else pB
@@ -172,7 +172,7 @@ class ColorMatchNode(io.ComfyNode):
                 pA = image_invert(pA, 1)
             if mask is not None:
                 pA = image_mask_add(pA, mask)
-            images.append(cv_to_tensor_full(pA, matte))
+            images.append(frame_outputs(pA, matte))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -224,13 +224,13 @@ class ColorKMeansNode(io.ComfyNode):
 
     @classmethod
     def execute(cls, **kw) -> io.NodeOutput:
-        import cv2
         import torch
 
         from ..modules.image.channel import channel_solid
         from ..modules.image.color import color_lut_full, color_lut_palette, color_lut_tonal, \
             color_lut_visualize, color_top_used, image_gradient_expand
-        from ..modules.image.convert import cv_to_tensor, tensor_to_cv
+        from ..modules.image.convert import frame_tensor, to_frame
+        from ..modules.image.sample import resize
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         kcolors = parse_param(kw, "value", EnumConvertType.INT, 12, 1, 255)
@@ -243,16 +243,16 @@ class ColorKMeansNode(io.ComfyNode):
         pbar = Progress(len(params))
         for idx, (pA, kcolors, nodes, lut_height, wihi) in enumerate(params):
             width, height = check_batch(*wihi, kcolors)
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             colors = color_top_used(pA, kcolors)
 
-            top_colors.extend([cv_to_tensor(channel_solid(width, height, color=c)) for c in colors])
-            lut_tonal.append(cv_to_tensor(color_lut_tonal(colors, width=pA.shape[1], height=lut_height)))
+            top_colors.extend([frame_tensor(channel_solid(width, height, color=c)) for c in colors])
+            lut_tonal.append(frame_tensor(color_lut_tonal(colors, width=pA.shape[1], height=lut_height)))
             full = color_lut_full(colors, nodes)
-            lut_full.append(torch.from_numpy(full))
-            lut_visualized.append(cv_to_tensor(color_lut_visualize(full, height)))
+            lut_full.append(full)
+            lut_visualized.append(frame_tensor(color_lut_visualize(full, height)))
             gradient = image_gradient_expand(color_lut_palette(colors, 1))
-            gradients.append(cv_to_tensor(cv2.resize(gradient, (width, height))))
+            gradients.append(frame_tensor(resize(gradient, width, height)))
             pbar.update(idx)
 
         return io.NodeOutput(torch.stack(top_colors), torch.stack(lut_tonal), torch.stack(gradients),
@@ -304,7 +304,7 @@ class ColorTheoryNode(io.ComfyNode):
         from ..modules.image.adjust import image_invert
         from ..modules.image.channel import channel_solid
         from ..modules.image.color import color_theory
-        from ..modules.image.convert import cv_to_tensor, tensor_to_cv
+        from ..modules.image.convert import frame_tensor, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         scheme = parse_param(kw, "scheme", EnumColorTheory, EnumColorTheory.COMPLIMENTARY.name)
@@ -314,11 +314,11 @@ class ColorTheoryNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (img, scheme, value, invert) in enumerate(params):
-            img = channel_solid() if img is None else tensor_to_cv(img)
+            img = channel_solid() if img is None else to_frame(img)
             img = color_theory(img, value, scheme)
             if invert:
                 img = [image_invert(s, 1) for s in img]
-            images.append([cv_to_tensor(a) for a in img])
+            images.append([frame_tensor(a) for a in img])
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -373,7 +373,7 @@ class GradientMapNode(io.ComfyNode):
         from ..modules.image.channel import channel_solid
         from ..modules.image.color import image_gradient_map
         from ..modules.image.compose import image_scalefit
-        from ..modules.image.convert import cv_to_tensor_full, image_mask, image_mask_add, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, image_mask, image_mask_add, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         gradient = parse_param(kw, "gradient", EnumConvertType.IMAGE, None)
@@ -386,16 +386,16 @@ class GradientMapNode(io.ComfyNode):
         params = list(zip_longest_fill(pA, gradient, reverse, mode, sample, wihi, matte))
         pbar = Progress(len(params))
         for idx, (pA, gradient, reverse, mode, sample, wihi, matte) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             mask = image_mask(pA) if pA.ndim == 3 and pA.shape[2] == 4 else None
-            gradient = channel_solid() if gradient is None else tensor_to_cv(gradient)
+            gradient = channel_solid() if gradient is None else to_frame(gradient)
             pA = image_gradient_map(pA, gradient, reverse)
             if mode != EnumScaleMode.MATTE:
                 w, h = check_canvas(*wihi)
                 pA = image_scalefit(pA, w, h, mode, sample)
             if mask is not None:
                 pA = image_mask_add(pA, mask)
-            images.append(cv_to_tensor_full(pA, matte))
+            images.append(frame_outputs(pA, matte))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 

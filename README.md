@@ -16,33 +16,29 @@ is in [FEATURES.md](FEATURES.md).
 
 ## Install
 
-Jovimetrix 3 needs ComfyUI 0.14.0 or newer.
+Jovimetrix 3 needs ComfyUI 0.14.0 or newer, and nothing else: it runs on torch, numpy, Pillow
+and scipy, which ComfyUI installs.
 
-**ComfyUI Manager.** Search for Jovimetrix and install it.
+**ComfyUI Manager.** Search for `Jovimetrix (WAS Fork)` and install it. Its registry id is
+`jovimetrix-was`, so `comfy node install jovimetrix-was` works too.
 
-**By hand.** Clone the pack into `ComfyUI/custom_nodes` and install its requirements with the
-Python that runs ComfyUI:
+**By hand.** Clone the pack into `ComfyUI/custom_nodes`:
 
 ```
 cd ComfyUI/custom_nodes
 git clone https://github.com/WASasquatch/Jovimetrix.git
 ```
 
-```
-python_embeded\python.exe -m pip install -r ComfyUI\custom_nodes\Jovimetrix\requirements.txt
-```
+Remove Alexander's original `Jovimetrix` first if it is installed. Both register the same nodes,
+so only one of them can load.
 
-On a portable Windows install, run the second command from the folder holding `python_embeded`.
-Elsewhere, use `python -m pip install -r requirements.txt` with ComfyUI's environment active.
-
-The requirements are `opencv-contrib-python`, `blendmodes` and `daltonlens`.
-
-## What changed in 3.0
+## What changed in 3
 
 - The nodes are built on ComfyUI's current node API. `cozy_comfyui` is no longer installed: the
   code Jovimetrix used from it ships inside the pack.
-- Fewer packages: `numba`, `scikit-learn`, `scikit-image`, `matplotlib`, `loguru` and `requests`
-  are no longer needed.
+- Nothing to install. 2.x needed OpenCV, blendmodes, daltonlens, numba, scikit-learn,
+  scikit-image, matplotlib, loguru and requests; 3.1 needs none of them. Picture work runs in
+  torch, in floating point rather than 8-bit steps.
 - QUEUE reads, and EXPORT and SAVE OUTPUT write, only inside ComfyUI's own folders and the folders
   named in `ComfyUI/user/jovimetrix/config.json`. See [Configuration](#configuration).
 - Node titles drop `(JOV)`; the pack's badge on each node names it.
@@ -57,23 +53,27 @@ and link in place. These are the differences it shows:
 | Node | What changed |
 |---|---|
 | Every node | The title drops `(JOV)` unless it was renamed. |
+| Every picture node | Works in floating point rather than 8-bit steps, so results can differ from 2.x by a level. ADJUST: SHARPEN and the SOBEL, SCHARR and LAPLACIAN edges magnify that difference, because 2.x's rounding was magnified too. |
 | ADJUST: LEVELS | In MANUAL mode, MID 0.5 now leaves the picture unchanged and lower values brighten. 2.x darkened the picture at the defaults. |
 | ADJUST: COLOR | LAB and LUV no longer darken the picture at zero. |
-| ADJUST: PIXEL | QUANTIZE reduces colours per pixel; PIXELATE at 0 no longer takes minutes. |
+| ADJUST: PIXEL | QUANTIZE reduces colours per pixel, and may settle on slightly different colours than 2.x. PIXELATE at 0 no longer takes minutes. |
 | VALUE, LERP, OP UNARY, OP BINARY | With nothing wired into `a` or `b`, all of `aa` and `bb` is used. 2.x replaced their X with 0. VALUE's INT is an integer. |
 | TEXT GEN | Colours draw as set; 2.x swapped red and blue. A font missing on this machine falls back to the default instead of failing. |
 | COLOR BLIND | 2.x swapped red and blue before simulating, so results differ. A `value` input for severity is added at the end. |
 | COLOR MATCH | REINHARD matches in true LAB; USER_MAP's colour table runs dark to light. |
-| COLOR MEANS | The LUT covers the whole colour range and its preview shows every slice. |
-| BLEND | HUE, SATURATION, COLOR and LUMINOSITY blend the right channels. With no `fore`, the background shows instead of a solid matte. |
+| COLOR MEANS | The LUT covers the whole colour range and its preview shows every slice. The colours found can differ slightly from 2.x. |
+| BLEND | HUE, SATURATION, COLOR and LUMINOSITY blend the right channels. ADDITIVE and GLOW do what they say; 2.x drew both as NORMAL. With no `fore`, the background shows instead of a solid matte. |
+| BLEND, CONSTANT | A `mask` given with a picture that has its own alpha keeps the lower of the two. 2.x combined their bits, which broke soft masks into patterns. |
 | CROP | XY mode reads `xy` as a share of the picture, as its range of 0 to 1 suggests. |
+| FLATTEN | ASPECT_SHORT works. |
+| TRANSFORM | POLAR leaves the outside of the disc black; 2.x left whatever was in memory. A size that rounds below one pixel gives one pixel instead of an error. |
 | GRADIENT MAP | `reverse` works. |
 | PIXEL MERGE | `invert` works. |
 | PIXEL SWAP | Alpha swaps work, and CONSTANT channels take the matte as RGBA. |
 | WAVE GEN | `invert` and PULSE work. Outputs are lists, so one time gives one plain number. |
 | TICK | `ease` NONE means no easing; QUINTIC_IN_OUT no longer jumps at its midpoint. |
 | ROUTE, DELAY, BATCH TO LIST | Outputs are lists, so values pass on exactly as they arrived. 2.x split pictures into a list core nodes could not read, and DELAY passed on only the first entry. |
-| QUEUE, QUEUE TOO | Paths outside the readable folders are refused. `recurse` works, a folder lists its pictures, and pictures load without their levels stretched. |
+| QUEUE, QUEUE TOO | Paths outside the readable folders are refused. `recurse` works, a folder lists its pictures, and pictures load without their levels stretched. A photo with EXIF rotation loads upright, as Load Image does. |
 | EXPORT | `path` is empty by default, meaning ComfyUI's output folder. A path outside the writable folders is refused; clear it, or add the folder to `allow_write`. |
 | SAVE OUTPUT | Adds a number instead of replacing a file of the same name, unless the new `overwrite` input is on. Saved PNGs carry the workflow in the form ComfyUI loads. |
 | GRAPH | Drawn without matplotlib, so the chart looks a little different. |
@@ -108,9 +108,9 @@ the pack may read, write and fetch is set out in [SECURITY.md](SECURITY.md).
 
 ## Third-party code
 
-Jovimetrix includes the code it used from `cozy_comfyui` (MIT) and code concepts from several
-other packs; [NOTICE](NOTICE) lists each with its licence. It depends on OpenCV (Apache 2.0),
-blendmodes (MIT) and daltonlens (MIT).
+Jovimetrix includes the code it used from `cozy_comfyui` (MIT), ports of blendmodes (MIT) and
+DaltonLens (MIT), OpenCV's colour map tables, and code concepts from several other packs;
+[NOTICE](NOTICE) lists each with its licence.
 
 ## Contributing
 

@@ -1,255 +1,208 @@
-"""Conversions between image arrays, torch tensors and Pillow images, and channel reshaping."""
+"""Conversions between ComfyUI tensors, frames and Pillow images, and channel reshaping.
 
-import cv2
-import torch
+A frame is one picture as a float tensor shaped ``(H, W, C)``, 0 to 1, with C of 1, 3 or 4.
+Colours passed in as numbers (mattes, fills) stay on the 0 to 255 scale nodes use.
+"""
+
+from __future__ import annotations
+
 import numpy as np
+import torch
 from PIL import Image
 
-from ..params import \
-    TensorType
+from . import RGBA_Int, ImageType
 
-from . import \
-    RGBA_Int, ImageType
+from .space import gray, linear_to_srgb, srgb_to_linear
+
+__all__ = [
+    "image_convert", "image_grayscale", "image_mask", "image_mask_add", "image_mask_binary",
+    "frame_to_pil", "frame_tensor", "frame_outputs", "pil_to_frame", "to_frame", "tensor_to_pil",
+    "srgb_to_linear", "linear_to_srgb",
+]
 
 # ==============================================================================
 # === SUPPORT ===
 # ==============================================================================
 
-def image_convert(image: ImageType, channels: int,
-                  width: int=0, height: int=0,
-                  matte: RGBA_Int=(0, 0, 0, 255)) -> ImageType:
-    """Force image format and optionally resize with alpha-masked padding.
+def _levels(color, count: int, device, dtype) -> torch.Tensor:
+    """A 0 to 255 colour as ``count`` levels on 0 to 1."""
+    values = [float(c) / 255.0 for c in (tuple(color) if isinstance(color, (list, tuple)) else (color,))]
+    values = (values + [values[-1]] * count)[:count] if len(values) < count else values[:count]
+    return torch.tensor(values, dtype=dtype, device=device)
+
+
+def image_convert(image: ImageType, channels: int, width: int = 0, height: int = 0,
+                  matte: RGBA_Int = (0, 0, 0, 255)) -> ImageType:
+    """Give a frame a channel count and, optionally, a canvas size.
 
     Args:
-        image (ImageType): Input image.
-        channels (int): Desired number of channels (1, 3, or 4).
-        width (int): Output width.
-        height (int): Output height.
-        matte (tuple): RGBA color for matte/padding areas.
+        image: Frame, ``(H, W)`` or ``(H, W, C)``.
+        channels: 1, 3 or 4.
+        width: Canvas width; 0 keeps the width.
+        height: Canvas height; 0 keeps the height.
+        matte: RGBA, 0 to 255, of the canvas around a frame smaller than it, and the alpha
+            added to a frame that has none.
+
     Returns:
-        ImageType: Converted image.
+        The frame. On a larger canvas the picture is centred and the surround is transparent;
+        a picture larger than the canvas is cut to it around the centre.
     """
     if image.ndim == 2:
-        image = np.expand_dims(image, axis=-1)
-
+        image = image.unsqueeze(-1)
     cc = image.shape[2]
     if cc == 1 and channels in (3, 4):
-        image = np.repeat(image, 3, axis=2)
-        cc = image.shape[2]
-
+        image = image.expand(-1, -1, 3)
+        cc = 3
     if cc == 3 and channels == 4:
-        alpha = np.full(image.shape[:2] + (1,), matte[3], dtype=image.dtype)
-        image = np.concatenate([image, alpha], axis=2)
+        alpha = torch.full_like(image[..., :1], float(tuple(matte)[3]) / 255.0)
+        image = torch.cat([image, alpha], dim=2)
     elif cc == 4 and channels == 3:
-        image = image[:, :, :3]
+        image = image[..., :3]
     elif cc == 4 and channels == 1:
-        rgb = image[..., :3]
-        alpha = image[..., 3:4] / 255.0
-        image = (np.mean(rgb, axis=2, keepdims=True) * alpha).astype(image.dtype)
-    elif channels == 1:
+        image = image[..., :3].mean(dim=2, keepdim=True) * image[..., 3:4]
+    elif cc != 1 and channels == 1:
         image = image_grayscale(image)
 
-    # Resize
     h, w = image.shape[:2]
-    new_width = width if width > 0 else w
-    new_height = height if height > 0 else h
+    width = width if width > 0 else w
+    height = height if height > 0 else h
+    if (width, height) == (w, h):
+        return image.contiguous()
 
-    if (new_width, new_height) != (w, h):
-        # Create base canvas with matte RGB and alpha=0 if needed
-        if channels == 4:
-            base_color = np.array(list(matte[:3]) + [0], dtype=image.dtype)
-        else:
-            base_color = np.array(matte[:channels], dtype=image.dtype)
-        new_image = np.full((new_height, new_width, channels), base_color, dtype=image.dtype)
+    c = image.shape[2]
+    base = _levels(matte, 4, image.device, image.dtype)
+    base = torch.cat([base[:3], base.new_zeros(1)]) if c == 4 else base[:c]
+    canvas = base.repeat(height, width, 1)
+    ox, oy = (width - w) // 2, (height - h) // 2
+    sx, sy = max(0, -ox), max(0, -oy)
+    dx, dy = max(0, ox), max(0, oy)
+    cw, ch = min(w - sx, width - dx), min(h - sy, height - dy)
+    canvas[dy:dy + ch, dx:dx + cw] = image[sy:sy + ch, sx:sx + cw]
+    if c == 4 and cc != 4:
+        canvas[dy:dy + ch, dx:dx + cw, 3] = 1.0
+    return canvas
 
-        paste_x = (new_width - w) // 2
-        paste_y = (new_height - h) // 2
-        new_image[paste_y:paste_y + h, paste_x:paste_x + w] = image
 
-        # Ensure pasted area alpha = 255 if RGBA
-        if channels == 4:
-            new_image[paste_y:paste_y + h, paste_x:paste_x + w, 3] = 255
-
-        image = new_image
-
-    return image
-
-def image_grayscale(image: ImageType, use_alpha: bool=False) -> ImageType:
-    """Convert image to grayscale, optionally using the alpha channel if present.
-
-    Args:
-        image (ImageType): Input image, potentially with multiple channels.
-        use_alpha (bool): If True and the image has 4 channels, multiply the grayscale
-                          values by the alpha channel. Defaults to False.
-
-    Returns:
-        ImageType: Grayscale image, optionally alpha-multiplied.
-    """
+def image_grayscale(image: ImageType, use_alpha: bool = False) -> ImageType:
+    """Rec. 601 grey of a frame, ``(H, W, 1)``; optionally multiplied by its alpha."""
     if image.ndim == 2:
-        image = np.expand_dims(image, -1)
-
+        image = image.unsqueeze(-1)
     if image.shape[2] == 1:
         return image
+    out = gray(image[..., :3])
+    if use_alpha and image.shape[2] == 4:
+        out = out * image[..., 3:4]
+    return out
 
-    grayscale = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-    grayscale = np.expand_dims(grayscale, axis=-1)
-    if image.shape[2] == 4:
-        if use_alpha:
-            alpha_channel = image[:,:,3] / 255.0
-            grayscale = (grayscale * alpha_channel).astype(np.uint8)
-    return grayscale
 
-def image_mask(image: ImageType, color: int=0) -> ImageType:
-    """Get the alpha mask from the image, if any, otherwise return one based on color value.
-
-    Args:
-        image: Input image, assumed to be 2D or 3D (with or without alpha channel).
-        color: Value to fill the mask (default is 0).
-
-    Returns:
-        ImageType: Mask of the image, either the alpha channel or a full mask of the given color.
-    """
+def image_mask(image: ImageType, color: float = 0) -> ImageType:
+    """A frame's alpha as ``(H, W)``, or a plane of ``color`` (0 to 255) when it has none."""
     if image.ndim == 3 and image.shape[2] == 4:
         return image[..., 3]
+    return torch.full(image.shape[:2], float(color) / 255.0, dtype=image.dtype, device=image.device)
 
-    h, w = image.shape[:2]
-    return np.ones((h, w), dtype=np.uint8) * color
 
-def image_mask_add(image:ImageType, mask:ImageType=None, alpha:float=255) -> ImageType:
-    """Put custom mask into an image. If there is no mask, alpha is applied.
-    Images are expanded to 4 channels.
-    Existing 4 channel images with no mask input just return themselves.
+def image_mask_add(image: ImageType, mask: ImageType = None, alpha: float = 255) -> ImageType:
+    """Return a frame as RGBA with ``mask`` as its alpha, resized to fit.
+
+    Args:
+        image: Frame.
+        mask: New alpha; ``None`` keeps the frame's own, or ``alpha`` when it has none.
+        alpha: Alpha, 0 to 255, for a frame with neither.
+
+    Returns:
+        The RGBA frame.
     """
-    image = image_convert(image, 4)
+    from .sample import resize
+
+    image = image_convert(image, 4).clone()
     mask = image_mask(image, alpha) if mask is None else image_convert(mask, 1)
-    h, w, c = image.shape
-    mask = cv2.resize(mask, (w, h))
-    image[..., 3] = mask if mask.ndim == 2 else mask[:, :, 0]
+    if mask.ndim == 2:
+        mask = mask.unsqueeze(-1)
+    h, w = image.shape[:2]
+    if mask.shape[:2] != (h, w):
+        mask = resize(mask, w, h)
+    image[..., 3] = mask[..., 0]
     return image
+
 
 def image_mask_binary(image: ImageType) -> ImageType:
-    """Convert an image to a binary mask where non-black pixels are 1 and black pixels are 0.
-    Supports BGR, single-channel grayscale, and RGBA images.
-
-    Args:
-        image (ImageType): Input image in BGR, grayscale, or RGBA format.
-
-    Returns:
-        ImageType: Binary mask with the same width and height as the input image, where
-                    pixels are 1 for non-black and 0 for black.
-    """
+    """1 where a frame is not black (and, with alpha, not transparent), else 0; ``(H, W, 1)``."""
     if image.ndim == 2:
-        # Grayscale image
-        gray = image
-    elif image.shape[2] == 3:
-        # BGR image
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    elif image.shape[2] == 4:
-        # RGBA image
-        alpha_channel = image[..., 3]
-        # Create a mask from the alpha channel where alpha > 0
-        alpha_mask = alpha_channel > 0
-        # Convert RGB to grayscale
-        gray = cv2.cvtColor(image[:, :, :3], cv2.COLOR_BGR2GRAY)
-        # Apply the alpha mask to the grayscale image
-        gray = cv2.bitwise_and(gray, gray, mask=alpha_mask.astype(np.uint8))
-    else:
-        raise ValueError("Unsupported image format")
+        image = image.unsqueeze(-1)
+    level = image if image.shape[2] == 1 else gray(image[..., :3])
+    if image.shape[2] == 4:
+        level = level * (image[..., 3:4] > 0)
+    return (level * 255.0 > 0.5).to(image.dtype)
 
-    # Create a binary mask where any non-black pixel is set to 1
-    _, mask = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY)
-    if mask.ndim == 2:
-        mask = np.expand_dims(mask, -1)
-    return mask.astype(np.uint8)
+# ==============================================================================
+# === TENSORS AND PILLOW ===
+# ==============================================================================
 
-def cv_to_pil(image: ImageType) -> Image.Image:
-    """Convert an RGB(A) or greyscale array to a Pillow image."""
-    if image.ndim > 2 and image.shape[2] == 1:
-        image = np.squeeze(image, axis=-1)
-    return Image.fromarray(np.ascontiguousarray(image))
-
-def cv_to_tensor(image: ImageType, grayscale: bool=False) -> TensorType:
-    """Convert a CV2 image to a torch tensor, with handling for grayscale/mask."""
-    if image.ndim < 3:
-        image = np.expand_dims(image, -1)
-
-    if grayscale:
-        if image.shape[2] == 4:
-            image = cv2.cvtColor(image, cv2.COLOR_RGBA2GRAY)
-        elif image.shape[2] == 3:
-            image = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
-
-        image = np.squeeze(image, axis=-1)
-
-    image = image.astype(np.float32) / 255.0
-    return torch.from_numpy(image)
-
-def cv_to_tensor_full(image: ImageType, matte:RGBA_Int=(0,0,0,255)) -> tuple[TensorType, ...]:
-    rgba = image_convert(image, 4, matte=matte)
-    rgb = rgba[...,:3]
-    mask = rgba[...,3]
-    rgba = torch.from_numpy(rgba.astype(np.float32) / 255.0)
-    rgb = torch.from_numpy(rgb.astype(np.float32) / 255.0)
-    mask = torch.from_numpy(mask.astype(np.float32) / 255.0)
-    return rgba, rgb, mask
-
-def pil_to_cv(image: Image.Image) -> ImageType:
-    """Convert a Pillow image to an RGB(A) or greyscale ``uint8`` array."""
-    return np.array(image, dtype=np.uint8)
-
-def pil_to_tensor(image: Image.Image) -> TensorType:
-    """Convert a PIL Image to a Torch Tensor."""
-    image_array = np.array(image).astype(np.float32) / 255.0
-    return torch.from_numpy(image_array).unsqueeze(0)
-
-def srgb_to_linear(img: ImageType) -> ImageType:
-    img = img / 255.0
-    return np.where(img <= 0.04045, img / 12.92, ((img + 0.055) / 1.055) ** 2.4)
-
-def linear_to_srgb(img: ImageType) -> ImageType:
-    img = np.clip(img, 0, 1)
-    return np.where(img <= 0.0031308, img * 12.92, 1.055 * (img ** (1 / 2.4)) - 0.055)
-
-def tensor_to_cv(tensor: TensorType, invert: bool=False, chan: int=0) -> ImageType:
-    """
-    Convert a torch Tensor (HWC or HW, float32 in [0, 1]) to a NumPy uint8 image array.
-
-    - Adds a channel dimension for grayscale images if missing.
-    - Optionally inverts the image (1.0 becomes 0.0 and vice versa).
-    - Converts values from float [0, 1] to uint8 [0, 255].
-    - Optionally forces the image to have 1, 3, or 4 channels.
+def to_frame(tensor: torch.Tensor, invert: bool = False, chan: int = 0) -> ImageType:
+    """Turn one ComfyUI picture into a frame.
 
     Args:
-        tensor (TensorType): Image tensor with shape (H, W), (H, W, 1), or (H, W, 3).
-        invert (bool): If True, invert the image.
-        chan (int, optional): Force the image to have 1, 3, or 4 channels.
+        tensor: ``(H, W)``, ``(H, W, C)``, or a batch of one.
+        invert: Invert the colour channels, leaving alpha.
+        chan: Force 1, 3 or 4 channels; 0 keeps them.
 
     Returns:
-        ImageType: NumPy array with shape (H, W, C) and dtype uint8.
+        The frame, clipped to 0 to 1.
+
+    Raises:
+        ValueError: A batch of more than one picture was given.
     """
-    tensor = tensor.detach().cpu().float()
-    if tensor.ndim == 2:  # [H, W] ==> HWC
-        tensor = tensor.unsqueeze(-1)
-
-    if tensor.ndim > 3:
-        raise Exception("Tensor is batch of tensors")
-
+    frame = tensor.detach().float()
+    if frame.ndim == 4:
+        if frame.shape[0] != 1:
+            raise ValueError("Expected one picture, got a batch.")
+        frame = frame[0]
+    if frame.ndim == 2:
+        frame = frame.unsqueeze(-1)
+    frame = frame.clamp(0, 1)
     if invert:
-        if tensor.shape[2] == 4:
-            tensor[:, :, :3] = 1.0 - tensor[:, :, :3]
+        if frame.shape[2] == 4:
+            frame = torch.cat([1.0 - frame[..., :3], frame[..., 3:]], dim=2)
         else:
-            tensor = 1.0 - tensor
-
-    image = np.clip(tensor.cpu().numpy() * 255, 0, 255).astype(np.uint8)
+            frame = 1.0 - frame
     if chan > 0:
-        image = image_convert(image, chan)
-    return image
+        frame = image_convert(frame, chan)
+    return frame.contiguous()
 
-def tensor_to_pil(tensor: TensorType) -> Image.Image:
-    """Convert a torch Tensor to a PIL Image.
-    Tensor should be HxWxC [no batch].
-    """
-    tensor = tensor.cpu().numpy().squeeze()
-    tensor = np.clip(255. * tensor, 0, 255).astype(np.uint8)
-    return Image.fromarray(tensor)
 
+def frame_tensor(image: ImageType, grayscale: bool = False) -> torch.Tensor:
+    """A frame as a ComfyUI tensor; ``grayscale`` gives a ``(H, W)`` mask instead."""
+    if image.ndim < 3:
+        image = image.unsqueeze(-1)
+    if grayscale:
+        if image.shape[2] > 1:
+            image = gray(image[..., :3])
+        return image[..., 0].float().cpu().clone()
+    return image.float().cpu().clone()
+
+
+def frame_outputs(image: ImageType, matte: RGBA_Int = (0, 0, 0, 255)) -> tuple[torch.Tensor, ...]:
+    """The ``(RGBA, RGB, MASK)`` tensors a picture node returns for one frame."""
+    rgba = image_convert(image, 4, matte=matte).float().cpu()
+    return rgba, rgba[..., :3].contiguous(), rgba[..., 3].contiguous()
+
+
+def frame_to_pil(image: ImageType) -> Image.Image:
+    """A frame as an 8-bit Pillow image."""
+    if image.ndim == 3 and image.shape[2] == 1:
+        image = image[..., 0]
+    array = (image.detach().float().clamp(0, 1) * 255.0).round().to(torch.uint8).cpu().numpy()
+    return Image.fromarray(np.ascontiguousarray(array))
+
+
+def pil_to_frame(image: Image.Image) -> ImageType:
+    """An 8-bit Pillow image (L, RGB or RGBA) as a frame."""
+    array = np.asarray(image, dtype=np.uint8)
+    frame = torch.from_numpy(array.astype(np.float32) / 255.0)
+    return frame.unsqueeze(-1) if frame.ndim == 2 else frame
+
+
+def tensor_to_pil(tensor: torch.Tensor) -> Image.Image:
+    """One ComfyUI picture as an 8-bit Pillow image."""
+    return frame_to_pil(to_frame(tensor))

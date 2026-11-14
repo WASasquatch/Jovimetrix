@@ -97,7 +97,7 @@ class BlendNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.channel import channel_solid
         from ..modules.image.compose import image_blend, image_scalefit
-        from ..modules.image.convert import cv_to_tensor_full, image_mask, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, image_mask, to_frame
         from ..modules.image.misc import image_by_size
 
         back = parse_param(kw, "back", EnumConvertType.IMAGE, None)
@@ -131,10 +131,10 @@ class BlendNode(io.ComfyNode):
             elif mode != EnumScaleMode.MATTE:
                 width, height = check_canvas(*wihi)
 
-            back = channel_solid(width, height, matte) if back is None else tensor_to_cv(back)
+            back = channel_solid(width, height, matte) if back is None else to_frame(back)
             fore = channel_solid(width, height, list(matte[:3]) + [0], EnumImageType.RGBA) \
-                if fore is None else tensor_to_cv(fore)
-            mask = image_mask(fore, 255) if mask is None else tensor_to_cv(mask, chan=1)
+                if fore is None else to_frame(fore)
+            mask = image_mask(fore, 255) if mask is None else to_frame(mask, chan=1)
             if invert:
                 mask = 255 - mask
 
@@ -151,7 +151,7 @@ class BlendNode(io.ComfyNode):
             if mode != EnumScaleMode.MATTE:
                 width, height = check_canvas(*wihi)
                 img = image_scalefit(img, width, height, mode, sample, matte)
-            images.append(cv_to_tensor_full(img, matte))
+            images.append(frame_outputs(img, matte))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -191,10 +191,10 @@ class FilterMaskNode(io.ComfyNode):
 
     @classmethod
     def execute(cls, **kw) -> io.NodeOutput:
-        import numpy as np
+        import torch
 
         from ..modules.image.adjust import image_filter
-        from ..modules.image.convert import cv_to_tensor_full, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         start = parse_param(kw, "start", EnumConvertType.VEC3INT, (128, 128, 128), 0, 255)
@@ -206,12 +206,12 @@ class FilterMaskNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, start, use_range, end, fuzz, matte) in enumerate(params):
-            img = np.zeros((IMAGE_SIZE_MIN, IMAGE_SIZE_MIN, 3), dtype=np.uint8) if pA is None else tensor_to_cv(pA)
+            img = torch.zeros((IMAGE_SIZE_MIN, IMAGE_SIZE_MIN, 3)) if pA is None else to_frame(pA)
             img, mask = image_filter(img, start, end, fuzz, use_range)
             if img.shape[2] == 3:
-                img = np.concatenate((img, np.zeros((img.shape[0], img.shape[1], 1), dtype=img.dtype)), axis=2)
+                img = torch.cat([img, torch.zeros_like(img[..., :1])], dim=2)
             img[..., 3] = mask
-            images.append(cv_to_tensor_full(img, matte))
+            images.append(frame_outputs(img, matte))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -244,7 +244,7 @@ class HistogramNode(io.ComfyNode):
         from ..modules.image.adjust import image_histogram2
         from ..modules.image.channel import channel_solid
         from ..modules.image.compose import image_resize
-        from ..modules.image.convert import cv_to_tensor_full, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         wihi = parse_param(kw, "wh", EnumConvertType.VEC2INT, (512, 512), IMAGE_SIZE_MIN)
@@ -252,10 +252,10 @@ class HistogramNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, wihi) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             width, height = check_canvas(*wihi)
             hist_img = image_resize(image_histogram2(pA, bins=256), width, height, EnumInterpolation.NEAREST)
-            images.append(cv_to_tensor_full(hist_img))
+            images.append(frame_outputs(hist_img))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -297,12 +297,12 @@ class PixelMergeNode(io.ComfyNode):
 
     @classmethod
     def execute(cls, **kw) -> io.NodeOutput:
-        import numpy as np
+        import torch
 
         from ..modules.image.adjust import image_invert
         from ..modules.image.channel import channel_merge
         from ..modules.image.compose import image_scalefit, image_split
-        from ..modules.image.convert import cv_to_tensor_full, image_convert, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, image_convert, to_frame
         from ..modules.image.misc import image_minmax
 
         rgba = parse_param(kw, "image", EnumConvertType.IMAGE, None)
@@ -319,15 +319,15 @@ class PixelMergeNode(io.ComfyNode):
         for idx, (rgba, r, g, b, a, matte, flip, invert) in enumerate(params):
             replace = r, g, b, a
             if rgba is not None:
-                planes = image_split(tensor_to_cv(rgba, chan=4))
-                img = [tensor_to_cv(replace[i]) if replace[i] is not None else x for i, x in enumerate(planes)]
+                planes = image_split(to_frame(rgba, chan=4))
+                img = [to_frame(replace[i]) if replace[i] is not None else x for i, x in enumerate(planes)]
             else:
-                img = [tensor_to_cv(x) if x is not None else x for x in replace]
+                img = [to_frame(x) if x is not None else x for x in replace]
 
             _, _, w_max, h_max = image_minmax(img)
             for i, x in enumerate(img):
                 if x is None:
-                    x = np.full((h_max, w_max, 1), matte[i], dtype=np.uint8)
+                    x = torch.full((h_max, w_max, 1), float(matte[i]) / 255.0)
                 else:
                     x = image_convert(x, 1)
                     x = image_scalefit(x, w_max, h_max, EnumScaleMode.ASPECT)
@@ -338,7 +338,7 @@ class PixelMergeNode(io.ComfyNode):
             img = channel_merge(img)
             if invert:
                 img = image_invert(img, 1)
-            images.append(cv_to_tensor_full(img, matte))
+            images.append(frame_outputs(img, matte))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -371,14 +371,14 @@ class PixelSplitNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.channel import channel_solid
         from ..modules.image.compose import image_split
-        from ..modules.image.convert import cv_to_tensor, image_convert, tensor_to_cv
+        from ..modules.image.convert import frame_tensor, image_convert, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         images = []
         pbar = Progress(len(pA))
         for idx, img in enumerate(pA):
-            img = channel_solid(chan=EnumImageType.RGBA) if img is None else tensor_to_cv(img, chan=4)
-            out = [cv_to_tensor(x, True) for x in image_split(img)] + [cv_to_tensor(image_convert(img, 3))]
+            img = channel_solid(chan=EnumImageType.RGBA) if img is None else to_frame(img, chan=4)
+            out = [frame_tensor(x, True) for x in image_split(img)] + [frame_tensor(image_convert(img, 3))]
             images.append(out)
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
@@ -424,7 +424,7 @@ class PixelSwapNode(io.ComfyNode):
     @classmethod
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.channel import channel_solid, channel_swap
-        from ..modules.image.convert import cv_to_tensor_full, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, to_frame
 
         pA = parse_param(kw, "source", EnumConvertType.IMAGE, None)
         pB = parse_param(kw, "target", EnumConvertType.IMAGE, None)
@@ -438,7 +438,7 @@ class PixelSwapNode(io.ComfyNode):
         pbar = Progress(len(params))
         for idx, (pA, pB, swap_r, swap_g, swap_b, swap_a, matte) in enumerate(params):
             if pA is None and pB is None:
-                images.append(cv_to_tensor_full(channel_solid()))
+                images.append(frame_outputs(channel_solid()))
                 pbar.update(idx)
                 continue
             if pA is None:
@@ -446,10 +446,10 @@ class PixelSwapNode(io.ComfyNode):
                 pA = channel_solid(w, h)
             else:
                 h, w = pA.shape[:2]
-                pA = tensor_to_cv(pA)
-            pB = channel_solid(w, h) if pB is None else tensor_to_cv(pB)
+                pA = to_frame(pA)
+            pB = channel_solid(w, h) if pB is None else to_frame(pB)
             out = channel_swap(pA, pB, (swap_r, swap_g, swap_b, swap_a), matte)
-            images.append(cv_to_tensor_full(out))
+            images.append(frame_outputs(out))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -497,7 +497,7 @@ class ThresholdNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.adjust import image_invert, image_threshold
         from ..modules.image.channel import channel_solid
-        from ..modules.image.convert import cv_to_tensor_full, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         mode = parse_param(kw, "func", EnumThreshold, EnumThreshold.BINARY.name)
@@ -509,11 +509,11 @@ class ThresholdNode(io.ComfyNode):
         images = []
         pbar = Progress(len(params))
         for idx, (pA, mode, adapt, th, block, invert) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
+            pA = channel_solid() if pA is None else to_frame(pA)
             pA = image_threshold(pA, th, mode, adapt, block)
             if invert:
                 pA = image_invert(pA, 1)
-            images.append(cv_to_tensor_full(pA))
+            images.append(frame_outputs(pA))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 

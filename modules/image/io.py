@@ -1,18 +1,18 @@
 """Reading images from disk or, when the settings allow it, from a web address."""
 
+from __future__ import annotations
+
+import io
 import urllib.request
 
-import cv2
 import numpy as np
-from PIL import Image, ImageOps
+import torch
 
 from .. import config, log
 
-from . import \
-    ImageType
+from . import ImageType
 
-from .convert import \
-    image_mask
+from .convert import image_mask
 
 logger = log.get_logger("image.io")
 
@@ -26,36 +26,27 @@ TIMEOUT = 20
 # === SUPPORT ===
 # ==============================================================================
 
-def to_uint8(img: np.ndarray) -> np.ndarray:
-    """Scale an image of any bit depth to ``uint8`` without stretching its levels.
+def to_unit(img: np.ndarray, mode: str = "") -> np.ndarray:
+    """Scale an image array of any bit depth to ``float32`` in 0 to 1, without stretching levels.
 
     Args:
         img: Image array.
+        mode: Pillow mode it came from; 16-bit modes are read as 16-bit.
 
     Returns:
-        The ``uint8`` image.
+        The array in 0 to 1.
     """
-    if img.dtype == np.uint8:
-        return img
-    if img.dtype == np.uint16:
-        return (img.astype(np.uint32) // 257).astype(np.uint8)
-    if np.issubdtype(img.dtype, np.floating):
-        return np.clip(img * 255.0, 0, 255).round().astype(np.uint8)
     if img.dtype == bool:
-        return img.astype(np.uint8) * 255
-    return np.clip(img, 0, 255).astype(np.uint8)
+        return img.astype(np.float32)
+    if img.dtype == np.uint8:
+        return img.astype(np.float32) / 255.0
+    if img.dtype == np.uint16 or mode.startswith("I;16"):
+        return np.clip(img.astype(np.float32) / 65535.0, 0, 1)
+    if np.issubdtype(img.dtype, np.floating):
+        return np.clip(img.astype(np.float32), 0, 1)
+    peak = 65535.0 if img.max(initial=0) > 255 else 255.0
+    return np.clip(img.astype(np.float32) / peak, 0, 1)
 
-def _decoded(img: np.ndarray) -> np.ndarray:
-    """Turn an OpenCV decode (BGR or BGRA) into an RGB or RGBA ``uint8`` array."""
-    img = to_uint8(img)
-    if img.ndim == 3:
-        if img.shape[2] == 4:
-            img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
-        elif img.shape[2] == 3:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    else:
-        img = np.expand_dims(img, -1)
-    return img
 
 def _download(url: str) -> bytes:
     if not config.get("allow_network"):
@@ -73,6 +64,23 @@ def _download(url: str) -> bytes:
         raise ValueError(f"The address returned more than {MAX_DOWNLOAD // (1024 * 1024)} MB.")
     return data
 
+
+def _decode(source) -> np.ndarray:
+    """Open ``source`` with Pillow, honouring EXIF rotation; returns ``(H, W, C)`` in 0 to 1."""
+    from PIL import Image, ImageOps
+
+    with Image.open(source) as pil:
+        pil = ImageOps.exif_transpose(pil)
+        mode = pil.mode
+        if mode in ("I", "I;16", "I;16B", "I;16L", "F"):
+            img = to_unit(np.array(pil), mode)
+        else:
+            if mode not in ("L", "RGB", "RGBA"):
+                pil = pil.convert("RGBA" if "A" in pil.getbands() or "transparency" in pil.info else "RGB")
+            img = to_unit(np.array(pil))
+    return img[..., None] if img.ndim == 2 else img
+
+
 def image_load(url: str) -> tuple[ImageType, ImageType]:
     """Read an image from a resolved local path or a web address.
 
@@ -80,32 +88,18 @@ def image_load(url: str) -> tuple[ImageType, ImageType]:
         url: A path already checked by the sandbox, or an ``http(s)`` address.
 
     Returns:
-        ``(image, mask)``: RGB(A) ``uint8`` image and its alpha, or a black mask.
+        ``(frame, mask)``: the frame and its alpha, or a black mask when it has none.
 
     Raises:
         PermissionError: A web address was given and fetching is off.
         ValueError: Nothing readable is at the path.
     """
-    if url.lower().startswith(("http://", "https://")):
-        data = np.frombuffer(_download(url), dtype=np.uint8)
-        img = cv2.imdecode(data, cv2.IMREAD_UNCHANGED)
-        if img is None:
-            raise ValueError("The web address did not return an image Jovimetrix can read.")
-        img = _decoded(img)
-    else:
-        img = cv2.imread(url, cv2.IMREAD_UNCHANGED)
-        if img is not None:
-            img = _decoded(img)
-        else:
-            try:
-                with Image.open(url) as pil:
-                    pil = ImageOps.exif_transpose(pil)
-                    if pil.mode not in ("L", "RGB", "RGBA"):
-                        pil = pil.convert("RGBA" if "A" in pil.getbands() else "RGB")
-                    img = to_uint8(np.array(pil))
-            except Exception as error:
-                raise ValueError(f"The file could not be read as an image ({type(error).__name__}).") from error
-            if img.ndim == 2:
-                img = np.expand_dims(img, -1)
-
-    return img, image_mask(img)
+    remote = url.lower().startswith(("http://", "https://"))
+    source = io.BytesIO(_download(url)) if remote else url
+    try:
+        img = _decode(source)
+    except Exception as error:
+        what = "web address did not return" if remote else "file could not be read as"
+        raise ValueError(f"The {what} an image Jovimetrix can read ({type(error).__name__}).") from error
+    frame = torch.from_numpy(np.ascontiguousarray(img))
+    return frame, image_mask(frame)

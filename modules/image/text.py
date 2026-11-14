@@ -1,8 +1,7 @@
-"""Text measured and drawn onto RGBA images."""
+"""Text measured and drawn onto RGBA frames."""
 
 import textwrap
 
-import numpy as np
 from PIL import Image, ImageFont, ImageDraw
 
 from ..enums import \
@@ -119,4 +118,6 @@ def text_draw(full_text: str, font: ImageFont.ImageFont,
             x = (width - line_width) / 2
         draw.text((x, y), line, fill=fill, font=font)
         y += height_delta
-    return np.array(img, dtype=np.uint8)
+    from .convert import pil_to_frame
+
+    return pil_to_frame(img)

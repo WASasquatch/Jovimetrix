@@ -85,7 +85,7 @@ class ArrayNode(io.ComfyNode):
     @classmethod
     def execute(cls, **kw) -> io.NodeOutput:
         from ...modules.image.compose import image_matte
-        from ...modules.image.convert import cv_to_tensor, image_convert, tensor_to_cv
+        from ...modules.image.convert import frame_tensor, image_convert, to_frame
         from ...modules.image.misc import image_by_size
 
         data_list = parse_dynamic(kw, "❔", EnumConvertType.ANY, None)
@@ -168,7 +168,7 @@ class ArrayNode(io.ComfyNode):
             for d in data:
                 h2, w2, cc = d.shape
                 if w != w2 or h != h2 or cc != 4:
-                    d = cv_to_tensor(image_matte(image_convert(tensor_to_cv(d), 4), (0, 0, 0, 0), w, h))
+                    d = frame_tensor(image_matte(image_convert(to_frame(d), 4), (0, 0, 0, 0), w, h))
                 result.append(d.unsqueeze(0))
             return io.NodeOutput(torch.stack(result), [size])
         return io.NodeOutput([data], [size])
@@ -338,7 +338,7 @@ def parse_queue(text: str, recurse: bool = False) -> list[Any]:
 
 
 def _load_entry(state: _QueueState, entry: Any) -> Any:
-    """Decode a queue entry: pictures become arrays, JSON files become data."""
+    """Decode a queue entry: pictures become frames, JSON files become data."""
     if not isinstance(entry, str):
         return entry
     if (cached := state.cache.get(entry)) is not None:
@@ -399,7 +399,6 @@ def run_queue(cls, kw: dict) -> tuple[Any, list, Any, int, int, bool]:
     Returns:
         ``(data, queue, current, index, total, trigger)``.
     """
-    import numpy as np
 
     from ...modules import messages
 
@@ -455,10 +454,10 @@ def run_queue(cls, kw: dict) -> tuple[Any, list, Any, int, int, bool]:
     batched = parse_param(kw, "batch", EnumConvertType.BOOLEAN, False)[0]
     if batched:
         from ...modules.image.compose import image_matte, image_scalefit
-        from ...modules.image.convert import cv_to_tensor, image_convert
+        from ...modules.image.convert import frame_tensor, image_convert
 
         data = [_load_entry(state, entry) for entry in state.queue]
-        shapes = [d.shape for d in data if isinstance(d, np.ndarray)]
+        shapes = [d.shape for d in data if isinstance(d, torch.Tensor)]
         if shapes:
             mh = max(s[0] for s in shapes)
             mw = max(s[1] for s in shapes)
@@ -470,7 +469,7 @@ def run_queue(cls, kw: dict) -> tuple[Any, list, Any, int, int, bool]:
             frames = []
             pbar = Progress(len(data))
             for idx, d in enumerate(data):
-                if not isinstance(d, np.ndarray):
+                if not isinstance(d, torch.Tensor):
                     continue
                 d = image_convert(d, mc)
                 if mode != EnumScaleMode.MATTE:
@@ -478,19 +477,19 @@ def run_queue(cls, kw: dict) -> tuple[Any, list, Any, int, int, bool]:
                     d = image_scalefit(d, w, h, EnumScaleMode.RESIZE_MATTE, sample, matte)
                 else:
                     d = image_matte(d, matte, mw, mh)
-                frames.append(cv_to_tensor(d))
+                frames.append(frame_tensor(d))
                 pbar.update(idx)
             data = torch.stack(frames)
     elif not wait:
         data = _load_entry(state, state.current)
-        if isinstance(data, np.ndarray):
+        if isinstance(data, torch.Tensor):
             from ...modules.image.compose import image_scalefit
-            from ...modules.image.convert import cv_to_tensor
+            from ...modules.image.convert import frame_tensor
 
             if mode != EnumScaleMode.MATTE:
                 w, h = check_canvas(w, h)
                 data = image_scalefit(data, w, h, mode, sample)
-            data = cv_to_tensor(data).unsqueeze(0)
+            data = frame_tensor(data).unsqueeze(0)
         state.index += 1
 
     state.previous = data
@@ -599,7 +598,7 @@ class QueueTooNode(io.ComfyNode):
 
     @classmethod
     def execute(cls, **kw) -> io.NodeOutput:
-        from ...modules.image.convert import cv_to_tensor_full, tensor_to_cv
+        from ...modules.image.convert import frame_outputs, to_frame
 
         data, _, current, index, total, trigger = run_queue(cls, kw)
         if not isinstance(data, torch.Tensor):
@@ -607,7 +606,7 @@ class QueueTooNode(io.ComfyNode):
             raise ValueError(f"QUEUE TOO's entry '{name[:80]}' is not a picture it can load. List "
                              "only picture files, or use QUEUE for other values.")
         matte = parse_param(kw, "matte", EnumConvertType.VEC4INT, (0, 0, 0, 255), 0, 255)[0]
-        frames = [cv_to_tensor_full(tensor_to_cv(d), matte) for d in data]
+        frames = [frame_outputs(to_frame(d), matte) for d in data]
         rgba, rgb, mask = [torch.stack(list(part)) for part in zip(*frames)]
         return io.NodeOutput(rgba, rgb, mask, "" if current is None else str(current), index, total, trigger)
 

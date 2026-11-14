@@ -1,19 +1,17 @@
-"""Image helpers on numpy arrays shaped ``(H, W, C)``, ``uint8`` in ``[0, 255]``.
+"""Image helpers on frames: one picture as a float tensor shaped ``(H, W, C)``, 0 to 1.
 
-Channel order is RGB or RGBA unless a function says otherwise. Importing the package needs OpenCV.
+C is 1, 3 or 4, in RGB or RGBA order. Everything here runs on torch, numpy, Pillow and scipy,
+which ComfyUI itself installs.
 """
 
 from __future__ import annotations
 
 import math
-from typing import Any, TypeAlias, Union
+from typing import TypeAlias, Union
 
-import numpy as np
+import torch
 
-from .. import deps
 from ..enums import EnumImageType
-
-deps.require("cv2")
 
 RGB_Int: TypeAlias = tuple[int, int, int]
 RGBA_Int: TypeAlias = tuple[int, int, int, int]
@@ -25,7 +23,7 @@ Coord3D_Int: TypeAlias = tuple[int, int, int]
 Coord2D_Float: TypeAlias = tuple[float, float]
 Coord3D_Float: TypeAlias = tuple[float, float, float]
 
-ImageType: TypeAlias = np.ndarray[Any, np.dtype[Any]]
+ImageType: TypeAlias = torch.Tensor
 PixelType: TypeAlias = Union[int, float, RGB_Int, RGBA_Int, RGB_Float, RGBA_Float]
 
 HALFPI: float = math.pi / 2

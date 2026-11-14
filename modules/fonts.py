@@ -145,7 +145,10 @@ def load(name: str, size: float):
     path = font_names().get(name, "")
     if path:
         try:
-            return ImageFont.truetype(path, size)
+            font = ImageFont.truetype(path, size)
+            # Some fonts open but fail on their first glyph; find out now rather than mid-draw.
+            font.getbbox("Ag")
+            return font
         except OSError:
             logger.warning("font '%s' could not be opened, using the built-in font", name)
     return ImageFont.load_default(size)

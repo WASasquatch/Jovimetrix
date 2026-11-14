@@ -1,30 +1,36 @@
-"""Image list helpers: sizing a set of images, interpolating two, and stacking results."""
+"""Frame list helpers: sizing a set of frames and stacking node results."""
+
+from __future__ import annotations
 
 import sys
 
-import cv2
 import torch
-import numpy as np
 
-from ..params import \
-    RGBAMaskType
+from ..params import RGBAMaskType
 
-from ..enums import \
-    EnumImageBySize
+from ..enums import EnumImageBySize
 
-from . import \
-    ImageType
+from . import ImageType
 
 # ==============================================================================
-# === SUPPPORT ===
+# === SUPPORT ===
 # ==============================================================================
 
 def image_by_size(image_list: list[ImageType],
-                  enumSize: EnumImageBySize=EnumImageBySize.LARGEST) -> tuple[ImageType, int, int]:
+                  enumSize: EnumImageBySize = EnumImageBySize.LARGEST) -> tuple[ImageType, int, int]:
+    """Pick a frame by size and report the width and height that rule settles on.
 
+    Args:
+        image_list: Frames.
+        enumSize: LARGEST and SMALLEST also give the largest or smallest width and height
+            across all frames; the others give the chosen extreme of one side.
+
+    Returns:
+        ``(frame, width, height)``.
+    """
     img = None
     mega, width, height = 0, 0, 0
-    if enumSize in [EnumImageBySize.SMALLEST, EnumImageBySize.WIDTH_MIN, EnumImageBySize.HEIGHT_MIN]:
+    if enumSize in (EnumImageBySize.SMALLEST, EnumImageBySize.WIDTH_MIN, EnumImageBySize.HEIGHT_MIN):
         mega, width, height = sys.maxsize, sys.maxsize, sys.maxsize
 
     for i in image_list:
@@ -58,33 +64,11 @@ def image_by_size(image_list: list[ImageType],
                 if h > height:
                     height = h
                     img = i
-
     return img, width, height
 
-def image_lerp(imageA: ImageType, imageB:ImageType, mask:ImageType=None,
-               alpha:float=1.) -> ImageType:
-
-    imageA = imageA.astype(np.float32)
-    imageB = imageB.astype(np.float32)
-
-    # establish mask
-    alpha = np.clip(alpha, 0, 1)
-    if mask is None:
-        height, width = imageA.shape[:2]
-        mask = np.ones((height, width, 1), dtype=np.float32)
-    else:
-        # normalize the mask
-        mask = mask.astype(np.float32)
-        mask = (mask - mask.min()) / (mask.max() - mask.min()) * alpha
-
-    # LERP
-    imageA = cv2.multiply(1. - mask, imageA)
-    imageB = cv2.multiply(mask, imageB)
-    imageA = (cv2.add(imageA, imageB) / 255. - 0.5) * 2.0
-    imageA = (imageA * 255).astype(imageA.dtype)
-    return np.clip(imageA, 0, 255)
 
 def image_minmax(image: list[ImageType]) -> tuple[int, int, int, int]:
+    """Smallest and largest width and height across frames: ``(w_min, h_min, w_max, h_max)``."""
     h_min = w_min = 100000000000
     h_max = w_max = 1
     for img in image:
@@ -95,18 +79,9 @@ def image_minmax(image: list[ImageType]) -> tuple[int, int, int, int]:
         w_max = max(w, w_max)
         h_min = min(h, h_min)
         w_min = min(w, w_min)
-
-    # x,y - x+width, y+height
     return w_min, h_min, w_max, h_max
 
-def image_normalize(image: ImageType) -> ImageType:
-    image = image.astype(np.float32)
-    img_min = np.min(image)
-    img_max = np.max(image)
-    if img_min == img_max:
-        return np.zeros_like(image)
-    image = (image - img_min) / (img_max - img_min)
-    return (image * 255).astype(np.uint8)
 
-def image_stack(images: list[ImageType] ) -> RGBAMaskType:
+def image_stack(images: list[ImageType]) -> RGBAMaskType:
+    """Stack per-frame ``(RGBA, RGB, MASK)`` results into three batches."""
     return [torch.stack(i) for i in zip(*images)]

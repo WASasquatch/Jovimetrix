@@ -1,3 +1,1 @@
-blendmodes
-daltonlens
-opencv-contrib-python
+# Jovimetrix needs nothing beyond what ComfyUI installs: torch, numpy, Pillow and scipy.

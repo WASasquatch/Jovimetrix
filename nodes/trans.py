@@ -86,7 +86,7 @@ class CropNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.channel import channel_solid
         from ..modules.image.compose import image_crop, image_crop_center, image_crop_polygonal
-        from ..modules.image.convert import cv_to_tensor_full, image_mask, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, image_mask, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         func = parse_param(kw, "func", EnumCropMode, EnumCropMode.CENTER.name)
@@ -100,7 +100,7 @@ class CropNode(io.ComfyNode):
         pbar = Progress(len(params))
         for idx, (pA, func, xy, wihi, tltr, blbr, matte) in enumerate(params):
             width, height = check_canvas(*wihi)
-            pA = channel_solid(width, height) if pA is None else tensor_to_cv(pA)
+            pA = channel_solid(width, height) if pA is None else to_frame(pA)
             alpha = image_mask(pA) if pA.ndim == 3 and pA.shape[2] == 4 else None
 
             if func == EnumCropMode.FREE:
@@ -116,7 +116,7 @@ class CropNode(io.ComfyNode):
                 pA = image_crop(pA, width, height, xy)
             else:
                 pA = image_crop_center(pA, width, height)
-            images.append(cv_to_tensor_full(pA, matte))
+            images.append(frame_outputs(pA, matte))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -152,14 +152,14 @@ class FlattenNode(io.ComfyNode):
     @classmethod
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.compose import image_flatten
-        from ..modules.image.convert import cv_to_tensor_full, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, to_frame
         from ..modules.image.misc import image_minmax
 
         imgs = [i for i in parse_dynamic(kw, "image", EnumConvertType.IMAGE, None) if i is not None]
         if not imgs:
             raise ValueError("FLATTEN has nothing to flatten. Connect at least one picture to an "
                              "image input.")
-        pA = [tensor_to_cv(i) for i in imgs]
+        pA = [to_frame(i) for i in imgs]
         mode = parse_param(kw, "mode", EnumScaleMode, EnumScaleMode.MATTE.name)[0]
         wihi = parse_param(kw, "wh", EnumConvertType.VEC2INT, (512, 512), 1)[0]
         sample = parse_param(kw, "sample", EnumInterpolation, EnumInterpolation.LANCZOS4.name)[0]
@@ -172,7 +172,7 @@ class FlattenNode(io.ComfyNode):
             w, h = check_canvas(*wihi)
         x, y = offset
         flat = image_flatten(pA, x, y, w, h, mode=mode, sample=sample)
-        return io.NodeOutput(*image_stack([cv_to_tensor_full(flat, matte)]))
+        return io.NodeOutput(*image_stack([frame_outputs(flat, matte)]))
 
 
 class SplitNode(io.ComfyNode):
@@ -212,7 +212,7 @@ class SplitNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.channel import channel_solid
         from ..modules.image.compose import image_scalefit
-        from ..modules.image.convert import cv_to_tensor, tensor_to_cv
+        from ..modules.image.convert import frame_tensor, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         percent = parse_param(kw, "value", EnumConvertType.FLOAT, 0.5, 0, 1)
@@ -226,7 +226,7 @@ class SplitNode(io.ComfyNode):
         pbar = Progress(len(params))
         for idx, (pA, percent, flip, mode, wihi, sample, matte) in enumerate(params):
             w, h = check_canvas(*wihi)
-            pA = channel_solid(w, h, matte) if pA is None else tensor_to_cv(pA)
+            pA = channel_solid(w, h, matte) if pA is None else to_frame(pA)
 
             axis = 1 if flip else 0
             size = pA.shape[axis]
@@ -239,7 +239,7 @@ class SplitNode(io.ComfyNode):
             if mode != EnumScaleMode.MATTE:
                 image_a = image_scalefit(image_a, w, h, mode, sample)
                 image_b = image_scalefit(image_b, w, h, mode, sample)
-            images.append([cv_to_tensor(img) for img in (image_a, image_b)])
+            images.append([frame_tensor(img) for img in (image_a, image_b)])
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -278,13 +278,13 @@ class StackNode(io.ComfyNode):
     @classmethod
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.compose import image_scalefit, image_stacker
-        from ..modules.image.convert import cv_to_tensor_full, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, to_frame
         from ..modules.image.misc import image_by_size
 
         images = [i for i in parse_dynamic(kw, "image", EnumConvertType.IMAGE, None) if i is not None]
         if not images:
             raise ValueError("STACK has nothing to stack. Connect at least one picture to an image input.")
-        images = [tensor_to_cv(i) for i in images]
+        images = [to_frame(i) for i in images]
         axis = parse_param(kw, "axis", EnumOrientation, EnumOrientation.GRID.name)[0]
         stride = parse_param(kw, "step", EnumConvertType.INT, 1, 0, MAX_STRIDE)[0]
         mode = parse_param(kw, "mode", EnumScaleMode, EnumScaleMode.MATTE.name)[0]
@@ -308,7 +308,7 @@ class StackNode(io.ComfyNode):
         if mode != EnumScaleMode.MATTE:
             w, h = check_canvas(*wihi)
             img = image_scalefit(img, w, h, mode, sample)
-        return io.NodeOutput(*image_stack([cv_to_tensor_full(img, matte)]))
+        return io.NodeOutput(*image_stack([frame_outputs(img, matte)]))
 
 
 class TransformNode(io.ComfyNode):
@@ -384,7 +384,7 @@ class TransformNode(io.ComfyNode):
         from ..modules.image.channel import channel_solid
         from ..modules.image.compose import image_crop_center, image_edge_wrap, image_mirror, \
             image_scalefit, image_transform
-        from ..modules.image.convert import cv_to_tensor_full, image_mask, image_mask_add, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, image_mask, image_mask_add, to_frame
         from ..modules.image.mapping import remap_fisheye, remap_perspective, remap_polar, remap_sphere
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
@@ -410,8 +410,8 @@ class TransformNode(io.ComfyNode):
         pbar = Progress(len(params))
         for idx, (pA, mask, offset, angle, size, edge, tile_xy, mirror, mirror_pivot, proj, strength,
                   tltr, blbr, mode, wihi, sample, matte) in enumerate(params):
-            pA = channel_solid() if pA is None else tensor_to_cv(pA)
-            mask = image_mask(pA, 255) if mask is None else tensor_to_cv(mask)
+            pA = channel_solid() if pA is None else to_frame(pA)
+            mask = image_mask(pA, 255) if mask is None else to_frame(mask)
             pA = image_mask_add(pA, mask)
 
             h, w = pA.shape[:2]
@@ -454,7 +454,7 @@ class TransformNode(io.ComfyNode):
                 w, h = check_canvas(*wihi)
                 pA = image_scalefit(pA, w, h, mode, sample)
 
-            images.append(cv_to_tensor_full(pA, matte))
+            images.append(frame_outputs(pA, matte))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 

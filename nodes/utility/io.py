@@ -332,11 +332,9 @@ class SaveOutputNode(io.ComfyNode):
 
     @classmethod
     def execute(cls, **kw) -> io.NodeOutput:
-        import numpy as np
-        from PIL import Image
         from PIL.PngImagePlugin import PngInfo
 
-        from ...modules.image.convert import tensor_to_cv
+        from ...modules.image.convert import frame_to_pil, to_frame
 
         images = [i for i in parse_param(kw, "image", EnumConvertType.IMAGE, None) if i is not None]
         if not images:
@@ -384,10 +382,7 @@ class SaveOutputNode(io.ComfyNode):
         for idx, image in enumerate(images):
             name = stem if len(images) == 1 else f"{stem}_{idx}"
             out = _next_free(folder, name, "png", overwrite)
-            pixels = np.clip(tensor_to_cv(image), 0, 255).astype(np.uint8)
-            if pixels.ndim == 3 and pixels.shape[2] == 1:
-                pixels = pixels[..., 0]
-            Image.fromarray(pixels).save(out, pnginfo=meta_png)
+            frame_to_pil(to_frame(image)).save(out, pnginfo=meta_png)
             written.append(out)
             pbar.update(idx)
 

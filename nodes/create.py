@@ -6,8 +6,8 @@ from comfy_api.latest import io
 
 from ..modules import fonts, log
 from ..modules.enums import \
-    EnumAlignment, EnumConvertType, EnumEdge, EnumInterpolation, EnumJustify, EnumScaleMode, \
-    EnumShapes
+    EnumAlignment, EnumConvertType, EnumEdge, EnumImageType, EnumInterpolation, EnumJustify, \
+    EnumScaleMode, EnumShapes
 from ..modules.limits import check_batch, check_canvas
 from ..modules.node import Progress, category, image_stack
 from ..modules.params import IMAGE_SIZE_MIN, parse_param, zip_longest_fill
@@ -79,8 +79,8 @@ class ConstantNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.channel import channel_solid
         from ..modules.image.compose import image_blend, image_scalefit
-        from ..modules.image.convert import cv_to_tensor_full, image_convert, image_mask, \
-            image_mask_add, tensor_to_cv
+        from ..modules.image.convert import frame_outputs, image_convert, image_mask, \
+            image_mask_add, to_frame
 
         pA = parse_param(kw, "image", EnumConvertType.IMAGE, None)
         mask = parse_param(kw, "mask", EnumConvertType.MASK, None)
@@ -97,13 +97,13 @@ class ConstantNode(io.ComfyNode):
             if pA is None:
                 pA = channel_solid(width, height, (0, 0, 0, 255))
             else:
-                pA = image_convert(tensor_to_cv(pA), 4)
+                pA = image_convert(to_frame(pA), 4)
                 h, w = pA.shape[:2]
 
             if mask is None:
                 mask = image_mask(pA, 0)
             else:
-                mask = tensor_to_cv(mask, invert=1, chan=1)
+                mask = to_frame(mask, invert=1, chan=1)
                 mask = image_scalefit(mask, w, h, matte=(0, 0, 0, 255), mode=EnumScaleMode.FIT)
 
             pB = channel_solid(w, h, matte)
@@ -111,7 +111,7 @@ class ConstantNode(io.ComfyNode):
             pA = image_mask_add(pA, mask)
             if mode != EnumScaleMode.MATTE:
                 pA = image_scalefit(pA, width, height, mode, sample, matte)
-            images.append(cv_to_tensor_full(pA, matte))
+            images.append(frame_outputs(pA, matte))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -165,12 +165,11 @@ class ShapeNode(io.ComfyNode):
 
     @classmethod
     def execute(cls, **kw) -> io.NodeOutput:
-        import cv2
-        import numpy as np
-
         from ..modules.image.compose import image_blend, image_transform
-        from ..modules.image.convert import cv_to_tensor, image_convert, image_mask_add, \
-            image_mask_binary, pil_to_cv
+        from ..modules.image.convert import frame_tensor, image_convert, image_mask_add, \
+            image_mask_binary, pil_to_frame
+        from ..modules.image.channel import channel_solid
+        from ..modules.image.kernels import gaussian_blur
         from ..modules.image.shape import shape_ellipse, shape_polygon, shape_quad
 
         shape = parse_param(kw, "shape", EnumShapes, EnumShapes.CIRCLE.name)
@@ -199,20 +198,18 @@ class ShapeNode(io.ComfyNode):
                 case _:
                     rgb = shape_ellipse(width, height, sizeX, sizeY, fill)
 
-            rgb = image_transform(pil_to_cv(rgb), offset, angle, edge=edge)
+            rgb = image_transform(pil_to_frame(rgb), offset, angle, edge=edge)
             mask = image_mask_binary(rgb)
 
             if blur > 0:
-                rgb = cv2.GaussianBlur(rgb, (0, 0), sigmaX=blur)
-                mask = cv2.GaussianBlur(mask, (0, 0), sigmaX=blur)
-                if mask.ndim == 2:
-                    mask = mask[..., None]
+                rgb = gaussian_blur(rgb, 0, blur)
+                mask = gaussian_blur(mask, 0, blur)
 
-            mask = (mask * (color[3] / 255.)).astype(np.uint8)
-            canvas = np.full((height, width, 4), list(matte[:3]) + [255], dtype=rgb.dtype)
+            mask = mask * (color[3] / 255.)
+            canvas = channel_solid(width, height, tuple(matte[:3]) + (255,), EnumImageType.RGBA)
             rgba = image_mask_add(image_blend(canvas, rgb, mask), mask)
             rgb = image_convert(rgba, 3)
-            images.append([cv_to_tensor(rgba), cv_to_tensor(rgb), cv_to_tensor(mask, True)])
+            images.append([frame_tensor(rgba), frame_tensor(rgb), frame_tensor(mask, True)])
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 
@@ -288,7 +285,7 @@ class TextNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ..modules.image.adjust import image_invert
         from ..modules.image.compose import image_rotate, image_translate
-        from ..modules.image.convert import cv_to_tensor_full
+        from ..modules.image.convert import frame_outputs
         from ..modules.image.text import text_autosize, text_draw
 
         names, default = _font_menu()
@@ -348,7 +345,7 @@ class TextNode(io.ComfyNode):
                 img = image_translate(img, pos, edge=edge)
                 if invert:
                     img = image_invert(img, 1)
-                images.append(cv_to_tensor_full(img, matte))
+                images.append(frame_outputs(img, matte))
             pbar.update(idx)
         return io.NodeOutput(*image_stack(images))
 

@@ -2,9 +2,9 @@ Jovimetrix was created by Alexander G. Morano and is maintained by Jordan Thomps
 
 This project includes code from cozy_comfyui (MIT), the support library Alexander G. Morano
 wrote for Jovimetrix, taken at commit 6f37572 and carried in modules/ with changes: the
-ComfyUI loader, logger and routes were replaced, numba, scikit-learn, scikit-image, matplotlib
-and requests were replaced with numpy, OpenCV, Pillow and the standard library, and defects were
-fixed.
+ComfyUI loader, logger and routes were replaced, OpenCV, numba, scikit-learn, scikit-image,
+matplotlib and requests were replaced with torch, numpy, Pillow, scipy and the standard library,
+and defects were fixed.
 https://github.com/cozy-comfyui/cozy_comfyui
 
     MIT License
@@ -50,8 +50,83 @@ https://github.com/rgthree/rgthree-comfy
 This project includes code concepts from the FizzNodes project (MIT)
 https://github.com/FizzleDorf/ComfyUI_FizzNodes
 
-Jovimetrix depends on, and does not include, these packages:
+This project includes a port of the blend modes and alpha compositing of blendmodes (MIT) in
+modules/image/blend.py.
+https://github.com/FHPythonUtils/BlendModes
 
-- blendmodes (MIT), https://github.com/FHPythonUtils/BlendModes
-- daltonlens (MIT), https://github.com/DaltonLens/DaltonLens-Python
-- OpenCV (Apache 2.0), https://github.com/opencv/opencv-python
+    MIT License
+
+    Copyright (c) 2020 Kieran BW
+    Copyright (c) 2019 Paul Jewell
+    Copyright (c) 2018 Addison Elliott
+    Copyright (c) 2017 pashango
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+This project includes a port of the colour vision deficiency simulators of DaltonLens-Python
+0.1.5 (MIT) in modules/image/cvd.py, with the matrices it derives written out as constants.
+https://github.com/DaltonLens/DaltonLens-Python
+
+    MIT License
+
+    Copyright (c) 2021 DaltonLens
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+
+modules/image/data/opencv_colormaps.png holds the 22 colour tables of OpenCV's applyColorMap,
+sampled from OpenCV 4.13. They come from OpenCV's modules/imgproc/src/colormap.cpp, which is
+distributed under the terms below. Its TURBO table is Google's Turbo colormap (Apache 2.0),
+https://ai.googleblog.com/2019/08/turbo-improved-rainbow-colormap-for.html
+https://github.com/opencv/opencv
+
+    Copyright (c) 2011. Philipp Wagner <bytefish[at]gmx[dot]de>.
+    Released to public domain under terms of the BSD Simplified license.
+
+    Redistribution and use in source and binary forms, with or without
+    modification, are permitted provided that the following conditions are met:
+      * Redistributions of source code must retain the above copyright
+        notice, this list of conditions and the following disclaimer.
+      * Redistributions in binary form must reproduce the above copyright
+        notice, this list of conditions and the following disclaimer in the
+        documentation and/or other materials provided with the distribution.
+      * Neither the name of the organization nor the names of its contributors
+        may be used to endorse or promote products derived from this software
+        without specific prior written permission.
+
+    See <http://www.opensource.org/licenses/bsd-license>
+
+The filters, colour spaces and resampling in modules/image/ reproduce the documented behaviour
+of OpenCV's functions (Apache 2.0, https://github.com/opencv/opencv) so that results match
+Jovimetrix 2.x; they are written for torch and contain no OpenCV code.
