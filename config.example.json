@@ -1,7 +1,6 @@
 {
     "allow_read": ["D:/footage", "/mnt/renders"],
     "allow_write": ["D:/deliveries"],
-    "gifski": "C:/tools/gifski/gifski.exe",
     "delay_min": 5,
     "delay_max": 10000000
 }

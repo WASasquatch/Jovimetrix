@@ -1038,13 +1038,13 @@ Save a batch of pictures as numbered PNG or JPG files, or as one animated GIF, i
 |---|---|---|---|---|
 | `image` | IMAGE, MASK |  |  | The pictures to save, one file or frame each. |
 | `path` | STRING |  |  | Folder to save into. Empty = ComfyUI's output folder; a relative path such as 'renders/shot1' is placed below it. |
-| `format` | COMBO | gif | menu: `gif`, `png`, `jpg`, `gifski` | gif = one animated GIF; png and jpg = one file per picture; gifski = a high quality GIF through the gifski program. |
+| `format` | COMBO | gif | menu: `gif`, `png`, `jpg`, `gifski` | gif = one animated GIF; png and jpg = one file per picture. gifski is kept so older workflows open and writes the same GIF as gif. |
 | `prefix` | STRING | jovi |  | File name without extension. Example: 'shot' gives shot.gif, then shot_1.gif. |
 | `overwrite` | BOOLEAN | False |  | Replace a file of the same name. Off = add a number instead. |
 | `opt` | BOOLEAN | False |  | gif and png: spend longer making the file smaller. |
-| `quality` | INT | 90 | 1 to 100 | gifski and jpg: picture quality. 100 = best, largest files. |
-| `motion` | INT | 100 | 1 to 100 | gifski: motion quality. Lower values shrink files of moving scenes. |
-| `fps` | INT | 24 | 1 to 60 | gif and gifski: frames per second. |
+| `quality` | INT | 90 | 1 to 100 | jpg: picture quality. 100 = best, largest files. |
+| `motion` | INT | 100 | 1 to 100 | Not used. Kept so older workflows open; it set the gifski program's motion quality. |
+| `fps` | INT | 24 | 1 to 60 | gif: frames per second. |
 | `loop` | INT | 0 | 0 to 65535 | gif: how many times the animation repeats. 0 = forever. |
 
 </details>

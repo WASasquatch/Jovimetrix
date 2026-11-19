@@ -5,8 +5,6 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
-import uuid
 from pathlib import Path
 from typing import Any
 
@@ -25,14 +23,14 @@ CATEGORY = category("UTILITY/IO")
 #: Longest DELAY the timer widget offers, in seconds.
 DELAY_LIMIT = 10000000
 
-#: Formats EXPORT writes.
+#: Formats EXPORT writes. ``gifski`` stays so 2.x workflows open; it writes the GIF ``gif`` does.
 FORMATS = ["gif", "png", "jpg", "gifski"]
+
+#: Formats written as one animated GIF.
+GIF_FORMATS = ("gif", "gifski")
 
 #: Value outputs on ROUTE, after its BUS output.
 ROUTE_SLOTS = 10
-
-#: Longest a gifski encode may run, in seconds.
-GIFSKI_TIMEOUT = 600
 
 #: Most numbered names EXPORT and SAVE OUTPUT try for a new file.
 MAX_NUMBERED = 1000000
@@ -115,7 +113,7 @@ class DelayNode(io.ComfyNode):
         if delay < 0 or delay > delay_max:
             delay = delay_max
         if delay > max(1, int(settings["delay_min"])):
-            messages.send("jovi-delay-user", ident, {"timeout": delay})
+            messages.notify("jovi-delay-user", ident, {"timeout": delay})
 
         messages.reset_requested(ident)
         pbar = Progress(delay)
@@ -143,7 +141,7 @@ class ExportNode(io.ComfyNode):
             category=CATEGORY,
             description="Save a batch of pictures as numbered PNG or JPG files, or as one animated "
                         "GIF, into ComfyUI's output folder or a folder below it.",
-            search_aliases=["EXPORT (JOV) 📽", "export", "save gif", "animated gif", "save frames", "gifski"],
+            search_aliases=["EXPORT (JOV) 📽", "export", "save gif", "animated gif", "save frames"],
             is_input_list=True,
             is_output_node=True,
             not_idempotent=True,
@@ -154,8 +152,9 @@ class ExportNode(io.ComfyNode):
                                 tooltip="Folder to save into. Empty = ComfyUI's output folder; a "
                                         "relative path such as 'renders/shot1' is placed below it."),
                 io.Combo.Input("format", options=FORMATS, default=FORMATS[0], optional=True,
-                               tooltip="gif = one animated GIF; png and jpg = one file per picture; "
-                                       "gifski = a high quality GIF through the gifski program."),
+                               tooltip="gif = one animated GIF; png and jpg = one file per picture. "
+                                       "gifski is kept so older workflows open and writes the same "
+                                       "GIF as gif."),
                 io.String.Input("prefix", default="jovi", optional=True,
                                 tooltip="File name without extension. Example: 'shot' gives shot.gif, "
                                         "then shot_1.gif."),
@@ -164,12 +163,12 @@ class ExportNode(io.ComfyNode):
                 io.Boolean.Input("opt", default=False, optional=True,
                                  tooltip="gif and png: spend longer making the file smaller."),
                 io.Int.Input("quality", default=90, min=1, max=100, optional=True,
-                             tooltip="gifski and jpg: picture quality. 100 = best, largest files."),
+                             tooltip="jpg: picture quality. 100 = best, largest files."),
                 io.Int.Input("motion", default=100, min=1, max=100, optional=True,
-                             tooltip="gifski: motion quality. Lower values shrink files of moving "
-                                     "scenes."),
+                             tooltip="Not used. Kept so older workflows open; it set the gifski "
+                                     "program's motion quality."),
                 io.Int.Input("fps", default=24, min=1, max=60, optional=True,
-                             tooltip="gif and gifski: frames per second."),
+                             tooltip="gif: frames per second."),
                 io.Int.Input("loop", default=0, min=0, max=65535, optional=True,
                              tooltip="gif: how many times the animation repeats. 0 = forever."),
             ],
@@ -182,8 +181,6 @@ class ExportNode(io.ComfyNode):
 
     @classmethod
     def execute(cls, **kw) -> io.NodeOutput:
-        import folder_paths
-
         from ...modules.image.convert import tensor_to_pil
 
         images = [i for i in parse_param(kw, "image", EnumConvertType.IMAGE, None) if i is not None]
@@ -196,7 +193,6 @@ class ExportNode(io.ComfyNode):
         overwrite = parse_param(kw, "overwrite", EnumConvertType.BOOLEAN, False)[0]
         optimize = parse_param(kw, "opt", EnumConvertType.BOOLEAN, False)[0]
         quality = parse_param(kw, "quality", EnumConvertType.INT, 90, 1, 100)[0]
-        motion = parse_param(kw, "motion", EnumConvertType.INT, 100, 1, 100)[0]
         fps = parse_param(kw, "fps", EnumConvertType.INT, 24, 1, 60)[0]
         loop = parse_param(kw, "loop", EnumConvertType.INT, 0, 0, 65535)[0]
         folder = sandbox.resolve_write_dir(parse_param(kw, "path", EnumConvertType.STRING, "")[0])
@@ -204,39 +200,7 @@ class ExportNode(io.ComfyNode):
 
         frames = [tensor_to_pil(i) for i in images]
         written: list[Path] = []
-        if fmt == "gifski":
-            gifski = str(config.get("gifski") or "")
-            if not gifski or not os.path.isfile(gifski):
-                raise ValueError("gifski is not set up. Put the full path of the gifski program in "
-                                 "the gifski key of ComfyUI/user/jovimetrix/config.json, or set "
-                                 "JOV_GIFSKI, then run again.")
-            work = Path(folder_paths.get_temp_directory()) / f"jovi_gifski_{uuid.uuid4().hex[:16]}"
-            work.mkdir(parents=True, exist_ok=False)
-            frame_files = []
-            try:
-                for idx, frame in enumerate(frames):
-                    name = work / f"frame_{idx:06d}.png"
-                    frame.save(name)
-                    frame_files.append(str(name))
-                out = _next_free(folder, prefix, "gif", overwrite)
-                cmd = [gifski, "-o", str(out), "--quality", str(quality),
-                       "--motion-quality", str(motion), "--fps", str(fps), *frame_files]
-                result = subprocess.run(cmd, capture_output=True, timeout=GIFSKI_TIMEOUT, check=False)
-                if result.returncode != 0:
-                    raise RuntimeError(f"gifski stopped with exit code {result.returncode}. Check that "
-                                       "the configured program is gifski and runs on its own.")
-                written.append(out)
-            finally:
-                for name in frame_files:
-                    try:
-                        os.remove(name)
-                    except OSError as error:
-                        logger.warning("a gifski frame could not be removed (%s)", error.strerror)
-                try:
-                    work.rmdir()
-                except OSError:
-                    pass
-        elif fmt == "gif":
+        if fmt in GIF_FORMATS:
             out = _next_free(folder, prefix, "gif", overwrite)
             frames[0].save(out, append_images=frames[1:], disposal=2, duration=1000 / fps,
                            loop=loop, optimize=optimize, save_all=True)

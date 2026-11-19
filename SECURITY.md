@@ -18,21 +18,23 @@ every workflow to, whoever wrote it.
   trailing dot or a Windows device name such as `NUL` is refused.
 - EXPORT and SAVE OUTPUT add a number to a new file rather than replace an existing one, unless
   `overwrite` is on.
-- The only files Jovimetrix deletes are the PNG frames EXPORT writes into ComfyUI `temp` for
-  gifski, by name, followed by their empty folder.
+- Jovimetrix deletes no files.
 
-## Programs
+## Programs and settings
 
-- EXPORT runs one program, gifski, and only from the path in the `gifski` setting or the
-  `JOV_GIFSKI` variable. It is started with an argument list, never through a shell, so nothing a
-  workflow types becomes a command.
+- Jovimetrix starts no programs. EXPORT's `gifski` format, which ran the gifski program up to
+  3.1.1, now writes its GIF with Pillow, as `gif` does.
+- Settings come from `ComfyUI/user/jovimetrix/config.json` alone. No environment variable
+  changes what the pack does, and nothing in the pack sets one.
 
 ## Network
 
 - The Python side opens no outgoing connection. No node downloads anything: a web address in a
   QUEUE list passes on as text, and QUEUE TOO refuses one. There is no setting that turns
-  downloading on; `allow_network`, which 3.0 and 3.1 read, is ignored.
+  downloading on; `allow_network`, which 3.0 and 3.1.0 read, is ignored.
 - The browser side loads only the pack's own files. It fetches nothing from any other host.
+- DELAY's prompt and QUEUE's progress reach the browser as ComfyUI client messages, over the
+  connection ComfyUI already holds with the tab that queued the run.
 
 ## Routes
 
@@ -41,8 +43,7 @@ every workflow to, whoever wrote it.
 | `/jovimetrix/message` | POST | `{"id", "cmd", "client_id"}` | Body up to 4096 bytes; id and command up to 64 characters; 256 node ids with 8 messages each, oldest dropped |
 
 A node reads a message only when it was sent by the browser tab that queued the run, or from
-any tab for a run queued without a client id, such as one sent straight to the API. The events a
-node sends (DELAY's prompt, QUEUE's progress) go to the tab that queued the run alone.
+any tab for a run queued without a client id, such as one sent straight to the API.
 
 ## Sizes
 

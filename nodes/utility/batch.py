@@ -452,7 +452,7 @@ def run_queue(cls, kw: dict, pictures: bool = False) -> tuple[Any, list, Any, in
     if stop and state.index >= state.length:
         from nodes import interrupt_processing
 
-        messages.send("jovi-queue-done", ident, state.status(ident))
+        messages.notify("jovi-queue-done", ident, state.status(ident))
         interrupt_processing()
         return state.previous, state.queue, state.current, state.index_last + 1, state.length, True
 
@@ -510,7 +510,7 @@ def run_queue(cls, kw: dict, pictures: bool = False) -> tuple[Any, list, Any, in
         state.index += 1
 
     state.previous = data
-    messages.send("jovi-queue-ping", ident, state.status(ident))
+    messages.notify("jovi-queue-ping", ident, state.status(ident))
     if stop and batched:
         from nodes import interrupt_processing
 

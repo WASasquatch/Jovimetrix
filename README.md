@@ -45,6 +45,8 @@ so only one of them can load.
 - Every input and output has a tooltip, and every node a description.
 - Nothing is downloaded. Like ComfyUI's Load Image, QUEUE reads pictures from ComfyUI's folders,
   and the frontend loads nothing from outside the pack.
+- No outside programs and no environment variables. EXPORT writes every format itself, and
+  settings come from the config file alone.
 
 ## Opening a 2.x workflow
 
@@ -78,7 +80,7 @@ and link in place. These are the differences it shows:
 | TICK | `ease` NONE means no easing; QUINTIC_IN_OUT no longer jumps at its midpoint. |
 | ROUTE, DELAY, BATCH TO LIST | Outputs are lists, so values pass on exactly as they arrived. 2.x split pictures into a list core nodes could not read, and DELAY passed on only the first entry. |
 | QUEUE, QUEUE TOO | Paths outside the readable folders are refused. `recurse` works, a folder lists its pictures, and pictures load without their levels stretched. A photo with EXIF rotation loads upright, as Load Image does. INDEX is the current entry counted from 1 with `hold` or `batch` on too; 2.x gave one less there. A web address is no longer downloaded: QUEUE passes it on as text and QUEUE TOO refuses it. Put the picture in ComfyUI's `input` folder, for example by dragging it from the browser onto a Load Image node, and list its file name. |
-| EXPORT | `path` is empty by default, meaning ComfyUI's output folder. A path outside the writable folders is refused; clear it, or add the folder to `allow_write`. |
+| EXPORT | `path` is empty by default, meaning ComfyUI's output folder. A path outside the writable folders is refused; clear it, or add the folder to `allow_write`. The `gifski` format no longer runs the gifski program: it writes the same GIF as `gif`, and `motion` does nothing. For a gifski encode, save `png` frames and run gifski on them yourself. |
 | SAVE OUTPUT | Adds a number instead of replacing a file of the same name, unless the new `overwrite` input is on. Saved PNGs carry the workflow in the form ComfyUI loads. |
 | GRAPH | Drawn without matplotlib, so the chart looks a little different. |
 
@@ -102,13 +104,14 @@ whenever it changes. [config.example.json](config.example.json) shows every key.
 |---|---|---|
 | `allow_read` | `[]` | Extra folders QUEUE and QUEUE TOO may read. |
 | `allow_write` | `[]` | Extra folders EXPORT and SAVE OUTPUT may write into. |
-| `gifski` | `""` | Full path of the gifski program, for EXPORT's `gifski` format. |
 | `delay_min` | `5` | DELAY shows its prompt only for pauses longer than this, in seconds. |
 | `delay_max` | `10000000` | Longest pause DELAY allows, in seconds. |
 
-The variables `JOV_GIFSKI`, `JOV_DELAY_MIN` and `JOV_DELAY_MAX` override the matching keys.
-`allow_network`, read by 3.0 and 3.1, is ignored: Jovimetrix downloads nothing. What the pack may
-read and write is set out in [SECURITY.md](SECURITY.md).
+The file is the only place settings come from. The variables `JOV_GIFSKI`, `JOV_DELAY_MIN` and
+`JOV_DELAY_MAX`, which 3.1.1 and earlier read, are not read any more; put `delay_min` and
+`delay_max` in the file instead. Keys that are no longer used, `allow_network` and `gifski`, are
+ignored with a note in the log. What the pack may read and write is set out in
+[SECURITY.md](SECURITY.md).
 
 ## Third-party code
 

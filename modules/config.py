@@ -1,13 +1,12 @@
 """Settings read from ``ComfyUI/user/jovimetrix/config.json``.
 
-The file is optional and is read again whenever it changes. Environment variables
-``JOV_GIFSKI``, ``JOV_DELAY_MIN`` and ``JOV_DELAY_MAX`` override the matching keys.
+The file is optional and is read again whenever it changes. It is the only place settings come
+from.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import threading
 from pathlib import Path
 from typing import Any
@@ -20,7 +19,6 @@ logger = log.get_logger("config")
 DEFAULTS: dict[str, Any] = {
     "allow_read": [],
     "allow_write": [],
-    "gifski": "",
     "delay_min": 5,
     "delay_max": 10000000,
 }
@@ -29,13 +27,8 @@ DEFAULTS: dict[str, Any] = {
 RETIRED = {
     "allow_network": "Jovimetrix no longer downloads web addresses; put files in ComfyUI's input "
                      "folder or a folder in allow_read",
-}
-
-#: Environment variable overriding a key.
-ENVIRONMENT = {
-    "gifski": "JOV_GIFSKI",
-    "delay_min": "JOV_DELAY_MIN",
-    "delay_max": "JOV_DELAY_MAX",
+    "gifski": "EXPORT no longer runs the gifski program; its gifski format writes the GIF the "
+              "way gif does",
 }
 
 #: Largest settings file read, in bytes.
@@ -103,7 +96,7 @@ def _read_file(path: Path) -> dict[str, Any]:
 
 
 def settings() -> dict[str, Any]:
-    """Return the current settings, environment overrides applied.
+    """Return the current settings.
 
     Returns:
         A dict holding every key in ``DEFAULTS``.
@@ -118,11 +111,7 @@ def settings() -> dict[str, Any]:
         if stamp != _cache["stamp"]:
             _cache["values"] = _read_file(path) if stamp is not None else dict(DEFAULTS)
             _cache["stamp"] = stamp
-        values = dict(_cache["values"])
-    for key, name in ENVIRONMENT.items():
-        if (raw := os.getenv(name)) is not None and raw.strip():
-            values[key] = _coerce(key, raw.strip())
-    return values
+        return dict(_cache["values"])
 
 
 def get(key: str) -> Any:

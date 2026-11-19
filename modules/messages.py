@@ -115,8 +115,8 @@ def reset_requested(ident: Any) -> bool:
     return found
 
 
-def send(event: str, ident: Any, data: dict[str, Any]) -> None:
-    """Send an event to the tab running the node.
+def notify(event: str, ident: Any, data: dict[str, Any]) -> None:
+    """Tell the tab running the node about an event, through ComfyUI's own client messages.
 
     Args:
         event: Event name the browser listens for.

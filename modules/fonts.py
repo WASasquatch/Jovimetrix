@@ -30,21 +30,23 @@ _fonts: dict[str, str] | None = None
 def font_folders() -> list[Path]:
     """Return the folders this platform keeps fonts in.
 
+    On Windows these are the system folder, ``C:\\Windows\\Fonts`` or the Windows folder on the
+    drive holding the user's home, and the per-user folder below the home.
+
     Returns:
-        Existing folders only.
+        Existing folders only, each once.
     """
     home = Path.home()
     if sys.platform.startswith("win"):
-        windir = Path(os.environ.get("WINDIR", "C:/Windows"))
-        local = Path(os.environ.get("LOCALAPPDATA", home / "AppData/Local"))
-        folders = [windir / "Fonts", local / "Microsoft/Windows/Fonts"]
+        folders = [Path("C:/Windows/Fonts"), Path(home.anchor or "C:/") / "Windows" / "Fonts",
+                   home / "AppData" / "Local" / "Microsoft" / "Windows" / "Fonts"]
     elif sys.platform == "darwin":
         folders = [Path("/System/Library/Fonts"), Path("/Library/Fonts"), home / "Library/Fonts"]
     else:
         folders = [Path("/usr/share/fonts"), Path("/usr/local/share/fonts"),
                    home / ".fonts", home / ".local/share/fonts"]
     folders.extend(_bundled_folders())
-    return [f for f in folders if f.is_dir()]
+    return [f for f in dict.fromkeys(folders) if f.is_dir()]
 
 
 def _bundled_folders() -> list[Path]:
