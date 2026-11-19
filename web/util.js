@@ -103,6 +103,11 @@ export async function widgetHookControl(node, control_key, child_key) {
     const controlCallback = control.callback;
     control.callback = async () => {
         const me = await controlCallback?.apply(this, arguments);
+        // Back to the options as created: drop what an earlier type added (int, a 0 to 1
+        // range for BOOLEAN) before applying the new type's.
+        for (const key of Object.keys(target.options)) {
+            if (!(key in track_options)) delete target.options[key];
+        }
         Object.assign(target.options, track_options);
 
         if (["VEC2", "VEC3", "VEC4", "FLOAT", "INT", "BOOLEAN"].includes(control.value)) {

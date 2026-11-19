@@ -130,7 +130,6 @@ To read or write another folder, name it in `ComfyUI/user/jovimetrix/config.json
 |---|---|---|
 | `allow_read` | `[]` | Extra folders QUEUE and QUEUE TOO may read. |
 | `allow_write` | `[]` | Extra folders EXPORT and SAVE OUTPUT may write into. |
-| `allow_network` | `false` | Let QUEUE and QUEUE TOO load `http` and `https` addresses. |
 | `gifski` | `""` | Full path of the gifski program, for EXPORT's `gifski` format. |
 | `delay_min` | `5` | DELAY shows its prompt only for pauses longer than this, in seconds. |
 | `delay_max` | `10000000` | Longest pause DELAY allows, in seconds. |
@@ -142,5 +141,5 @@ The file is read again whenever it changes. The variables `JOV_GIFSKI`, `JOV_DEL
 |---|---|
 | `refusing to read` | Move the files into ComfyUI's `input` folder, or add their folder to `allow_read`. |
 | `refusing to write into` | Clear the path to use `output`, type a relative path, or add the folder to `allow_write`. |
-| `allow_network` in the message | Download the file into `input`, or set `allow_network` to `true`. |
+| `does not download web addresses` | Put the picture in ComfyUI's `input` folder, for example by dragging it from the browser onto a Load Image node, and list its file name. |
 | `gifski is not set up` | Install gifski and put its full path in the `gifski` key. |

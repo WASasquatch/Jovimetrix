@@ -9,7 +9,7 @@ from ..modules.enums import \
     EnumCBDeficiency, EnumCBSimulator, EnumColorMap, EnumColorMatchMap, EnumColorMatchMode, \
     EnumColorTheory, EnumConvertType, EnumInterpolation, EnumScaleMode
 from ..modules.limits import check_batch, check_canvas
-from ..modules.node import Progress, category, image_stack
+from ..modules.node import Progress, category, image_stack, stack_runs
 from ..modules.params import IMAGE_SIZE_MIN, parse_param, zip_longest_fill
 from ..modules.types import IMAGE_OUTPUTS, IMAGE_TYPES, JLUT, VEC2, VEC4
 
@@ -211,8 +211,9 @@ class ColorKMeansNode(io.ComfyNode):
             outputs=[
                 io.Image.Output("IMAGE", display_name="IMAGE",
                                 tooltip="One solid swatch per colour, most used first, as a batch."),
-                io.Image.Output("PALETTE", display_name="PALETTE",
-                                tooltip="One row per colour, fading to black; as wide as the input."),
+                io.Image.Output("PALETTE", display_name="PALETTE", is_output_list=True,
+                                tooltip="One row per colour, fading to black; as wide as the input. "
+                                        "Inputs of different widths give one batch per width."),
                 io.Image.Output("GRADIENT", display_name="GRADIENT",
                                 tooltip="The colours blended into one left-to-right gradient."),
                 JLUT.Output("LUT", display_name="LUT",
@@ -255,7 +256,7 @@ class ColorKMeansNode(io.ComfyNode):
             gradients.append(frame_tensor(resize(gradient, width, height)))
             pbar.update(idx)
 
-        return io.NodeOutput(torch.stack(top_colors), torch.stack(lut_tonal), torch.stack(gradients),
+        return io.NodeOutput(torch.stack(top_colors), stack_runs(lut_tonal), torch.stack(gradients),
                              lut_full, torch.stack(lut_visualized))
 
 
@@ -288,13 +289,15 @@ class ColorTheoryNode(io.ComfyNode):
                                  tooltip="Invert every colour of the harmony."),
             ],
             outputs=[
-                io.Image.Output("C1", display_name="C1", tooltip="The picture's average colour."),
-                io.Image.Output("C2", display_name="C2", tooltip="First harmony colour."),
-                io.Image.Output("C3", display_name="C3",
+                io.Image.Output("C1", display_name="C1", is_output_list=True,
+                                tooltip="The picture's average colour."),
+                io.Image.Output("C2", display_name="C2", is_output_list=True,
+                                tooltip="First harmony colour."),
+                io.Image.Output("C3", display_name="C3", is_output_list=True,
                                 tooltip="Second harmony colour, black when the scheme has one colour."),
-                io.Image.Output("C4", display_name="C4",
+                io.Image.Output("C4", display_name="C4", is_output_list=True,
                                 tooltip="Third harmony colour, black when the scheme has fewer."),
-                io.Image.Output("C5", display_name="C5",
+                io.Image.Output("C5", display_name="C5", is_output_list=True,
                                 tooltip="Fourth harmony colour, black when the scheme has fewer."),
             ],
         )

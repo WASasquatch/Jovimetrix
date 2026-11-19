@@ -29,8 +29,9 @@ every workflow to, whoever wrote it.
 
 ## Network
 
-- Nothing is fetched from the network unless `allow_network` is `true`. With it on, QUEUE and
-  QUEUE TOO read `http` and `https` addresses, up to 64 MB each, with a 20 second timeout.
+- The Python side opens no outgoing connection. No node downloads anything: a web address in a
+  QUEUE list passes on as text, and QUEUE TOO refuses one. There is no setting that turns
+  downloading on; `allow_network`, which 3.0 and 3.1 read, is ignored.
 - The browser side loads only the pack's own files. It fetches nothing from any other host.
 
 ## Routes

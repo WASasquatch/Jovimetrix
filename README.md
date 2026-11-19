@@ -43,7 +43,8 @@ so only one of them can load.
   named in `ComfyUI/user/jovimetrix/config.json`. See [Configuration](#configuration).
 - Node titles drop `(JOV)`; the pack's badge on each node names it.
 - Every input and output has a tooltip, and every node a description.
-- The frontend loads nothing from outside the pack.
+- Nothing is downloaded. Like ComfyUI's Load Image, QUEUE reads pictures from ComfyUI's folders,
+  and the frontend loads nothing from outside the pack.
 
 ## Opening a 2.x workflow
 
@@ -54,10 +55,13 @@ and link in place. These are the differences it shows:
 |---|---|
 | Every node | The title drops `(JOV)` unless it was renamed. |
 | Every picture node | Works in floating point rather than 8-bit steps, so results can differ from 2.x by a level. ADJUST: SHARPEN and the SOBEL, SCHARR and LAPLACIAN edges magnify that difference, because 2.x's rounding was magnified too. |
+| Every picture node | Picture and mask outputs are lists. A batch still passes on as one batch, but a list of pictures of different sizes now passes through as a list of batches, a new batch starting wherever the size changes, where 2.x stopped with "stack expects each tensor to be equal size". A mask or picture that arrives without a batch dimension is read as one picture; 2.x read it as one picture per row. |
+| Every node with a vector input | Editing one node's vector no longer changes the same input on other nodes of that type, or the value new nodes start with. A vector input wired to a subgraph input can be edited on the subgraph node. |
 | ADJUST: LEVELS | In MANUAL mode, MID 0.5 now leaves the picture unchanged and lower values brighten. 2.x darkened the picture at the defaults. |
 | ADJUST: COLOR | LAB and LUV no longer darken the picture at zero. |
 | ADJUST: PIXEL | QUANTIZE reduces colours per pixel, and may settle on slightly different colours than 2.x. PIXELATE at 0 no longer takes minutes. |
-| VALUE, LERP, OP UNARY, OP BINARY | With nothing wired into `a` or `b`, all of `aa` and `bb` is used. 2.x replaced their X with 0. VALUE's INT is an integer. |
+| VALUE, LERP, OP UNARY, OP BINARY | With nothing wired into `a` or `b`, all of `aa` and `bb` is used. 2.x replaced their X with 0. VALUE's INT is an integer. Changing `type` away from BOOLEAN or INT gives the fields their full range again. |
+| ARRAY | A mask batch is read as one mask per frame; 2.x read the whole batch as one picture. |
 | TEXT GEN | Colours draw as set; 2.x swapped red and blue. A font missing on this machine falls back to the default instead of failing. |
 | COLOR BLIND | 2.x swapped red and blue before simulating, so results differ. A `value` input for severity is added at the end. |
 | COLOR MATCH | REINHARD matches in true LAB; USER_MAP's colour table runs dark to light. |
@@ -73,7 +77,7 @@ and link in place. These are the differences it shows:
 | WAVE GEN | `invert` and PULSE work. Outputs are lists, so one time gives one plain number. |
 | TICK | `ease` NONE means no easing; QUINTIC_IN_OUT no longer jumps at its midpoint. |
 | ROUTE, DELAY, BATCH TO LIST | Outputs are lists, so values pass on exactly as they arrived. 2.x split pictures into a list core nodes could not read, and DELAY passed on only the first entry. |
-| QUEUE, QUEUE TOO | Paths outside the readable folders are refused. `recurse` works, a folder lists its pictures, and pictures load without their levels stretched. A photo with EXIF rotation loads upright, as Load Image does. |
+| QUEUE, QUEUE TOO | Paths outside the readable folders are refused. `recurse` works, a folder lists its pictures, and pictures load without their levels stretched. A photo with EXIF rotation loads upright, as Load Image does. INDEX is the current entry counted from 1 with `hold` or `batch` on too; 2.x gave one less there. A web address is no longer downloaded: QUEUE passes it on as text and QUEUE TOO refuses it. Put the picture in ComfyUI's `input` folder, for example by dragging it from the browser onto a Load Image node, and list its file name. |
 | EXPORT | `path` is empty by default, meaning ComfyUI's output folder. A path outside the writable folders is refused; clear it, or add the folder to `allow_write`. |
 | SAVE OUTPUT | Adds a number instead of replacing a file of the same name, unless the new `overwrite` input is on. Saved PNGs carry the workflow in the form ComfyUI loads. |
 | GRAPH | Drawn without matplotlib, so the chart looks a little different. |
@@ -98,13 +102,13 @@ whenever it changes. [config.example.json](config.example.json) shows every key.
 |---|---|---|
 | `allow_read` | `[]` | Extra folders QUEUE and QUEUE TOO may read. |
 | `allow_write` | `[]` | Extra folders EXPORT and SAVE OUTPUT may write into. |
-| `allow_network` | `false` | Let QUEUE and QUEUE TOO load `http` and `https` addresses. |
 | `gifski` | `""` | Full path of the gifski program, for EXPORT's `gifski` format. |
 | `delay_min` | `5` | DELAY shows its prompt only for pauses longer than this, in seconds. |
 | `delay_max` | `10000000` | Longest pause DELAY allows, in seconds. |
 
-The variables `JOV_GIFSKI`, `JOV_DELAY_MIN` and `JOV_DELAY_MAX` override the matching keys. What
-the pack may read, write and fetch is set out in [SECURITY.md](SECURITY.md).
+The variables `JOV_GIFSKI`, `JOV_DELAY_MIN` and `JOV_DELAY_MAX` override the matching keys.
+`allow_network`, read by 3.0 and 3.1, is ignored: Jovimetrix downloads nothing. What the pack may
+read and write is set out in [SECURITY.md](SECURITY.md).
 
 ## Third-party code
 

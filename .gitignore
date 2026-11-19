@@ -25,3 +25,4 @@ __pycache__/
 *-lock.json
 *.config.mjs
 /package.json
+*Zone.Identifier

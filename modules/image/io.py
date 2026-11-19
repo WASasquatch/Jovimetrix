@@ -1,14 +1,15 @@
-"""Reading images from disk or, when the settings allow it, from a web address."""
+"""Reading images from disk.
+
+Jovimetrix never downloads anything. Like ComfyUI's own Load Image, it reads pictures only from
+paths the sandbox has already resolved inside ComfyUI's folders or the folders in ``allow_read``.
+"""
 
 from __future__ import annotations
-
-import io
-import urllib.request
 
 import numpy as np
 import torch
 
-from .. import config, log
+from .. import log
 
 from . import ImageType
 
@@ -16,11 +17,8 @@ from .convert import image_mask
 
 logger = log.get_logger("image.io")
 
-#: Largest download read from a web address, in bytes.
-MAX_DOWNLOAD = 64 * 1024 * 1024
-
-#: Seconds to wait for a web address.
-TIMEOUT = 20
+#: Prefixes of the web addresses Jovimetrix refuses to treat as paths.
+WEB_PREFIXES = ("http://", "https://", "ftp://", "ftps://", "file://")
 
 # ==============================================================================
 # === SUPPORT ===
@@ -48,21 +46,16 @@ def to_unit(img: np.ndarray, mode: str = "") -> np.ndarray:
     return np.clip(img.astype(np.float32) / peak, 0, 1)
 
 
-def _download(url: str) -> bytes:
-    if not config.get("allow_network"):
-        raise PermissionError(
-            "Jovimetrix does not fetch web addresses unless allow_network is true in "
-            "ComfyUI/user/jovimetrix/config.json. Download the file into ComfyUI's input "
-            "folder, or turn allow_network on."
-        )
-    if not url.lower().startswith(("http://", "https://")):
-        raise ValueError("Only http and https addresses can be fetched.")
-    request = urllib.request.Request(url, headers={"User-Agent": "Jovimetrix"})
-    with urllib.request.urlopen(request, timeout=TIMEOUT) as response:
-        data = response.read(MAX_DOWNLOAD + 1)
-    if len(data) > MAX_DOWNLOAD:
-        raise ValueError(f"The address returned more than {MAX_DOWNLOAD // (1024 * 1024)} MB.")
-    return data
+def is_web_address(text: str) -> bool:
+    """Return whether ``text`` is a web address rather than a path.
+
+    Args:
+        text: An entry as typed.
+
+    Returns:
+        True for ``http``, ``https``, ``ftp``, ``ftps`` and ``file`` addresses.
+    """
+    return text.strip().lower().startswith(WEB_PREFIXES)
 
 
 def _decode(source) -> np.ndarray:
@@ -81,25 +74,25 @@ def _decode(source) -> np.ndarray:
     return img[..., None] if img.ndim == 2 else img
 
 
-def image_load(url: str) -> tuple[ImageType, ImageType]:
-    """Read an image from a resolved local path or a web address.
+def image_load(path: str) -> tuple[ImageType, ImageType]:
+    """Read an image from a local path the sandbox has resolved.
 
     Args:
-        url: A path already checked by the sandbox, or an ``http(s)`` address.
+        path: A path already checked by ``sandbox.resolve_read``.
 
     Returns:
         ``(frame, mask)``: the frame and its alpha, or a black mask when it has none.
 
     Raises:
-        PermissionError: A web address was given and fetching is off.
-        ValueError: Nothing readable is at the path.
+        ValueError: ``path`` is a web address, or nothing readable is at it.
     """
-    remote = url.lower().startswith(("http://", "https://"))
-    source = io.BytesIO(_download(url)) if remote else url
+    if is_web_address(path):
+        raise ValueError("Jovimetrix reads pictures from ComfyUI's folders and does not download "
+                         "web addresses.")
     try:
-        img = _decode(source)
+        img = _decode(path)
     except Exception as error:
-        what = "web address did not return" if remote else "file could not be read as"
-        raise ValueError(f"The {what} an image Jovimetrix can read ({type(error).__name__}).") from error
+        raise ValueError(f"The file could not be read as an image Jovimetrix can read "
+                         f"({type(error).__name__}).") from error
     frame = torch.from_numpy(np.ascontiguousarray(img))
     return frame, image_mask(frame)

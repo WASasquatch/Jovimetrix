@@ -203,8 +203,10 @@ class SplitNode(io.ComfyNode):
                 MATTE_IN,
             ],
             outputs=[
-                io.Image.Output("IMAGEA", display_name="IMAGEA", tooltip="The top or left part."),
-                io.Image.Output("IMAGEB", display_name="IMAGEB", tooltip="The bottom or right part."),
+                io.Image.Output("IMAGEA", display_name="IMAGEA", is_output_list=True,
+                                tooltip="The top or left part."),
+                io.Image.Output("IMAGEB", display_name="IMAGEB", is_output_list=True,
+                                tooltip="The bottom or right part."),
             ],
         )
 

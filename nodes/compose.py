@@ -358,12 +358,16 @@ class PixelSplitNode(io.ComfyNode):
             is_input_list=True,
             inputs=[*IMAGE_IN],
             outputs=[
-                io.Mask.Output("❤️", display_name="❤️", tooltip="The red channel as a mask."),
-                io.Mask.Output("💚", display_name="💚", tooltip="The green channel as a mask."),
-                io.Mask.Output("💙", display_name="💙", tooltip="The blue channel as a mask."),
-                io.Mask.Output("🤍", display_name="🤍",
+                io.Mask.Output("❤️", display_name="❤️", is_output_list=True,
+                               tooltip="The red channel as a mask."),
+                io.Mask.Output("💚", display_name="💚", is_output_list=True,
+                               tooltip="The green channel as a mask."),
+                io.Mask.Output("💙", display_name="💙", is_output_list=True,
+                               tooltip="The blue channel as a mask."),
+                io.Mask.Output("🤍", display_name="🤍", is_output_list=True,
                                tooltip="The alpha channel as a mask; white when the picture has no alpha."),
-                io.Image.Output("RGB", display_name="RGB", tooltip="The picture without its alpha."),
+                io.Image.Output("RGB", display_name="RGB", is_output_list=True,
+                                tooltip="The picture without its alpha."),
             ],
         )
 

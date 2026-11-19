@@ -53,18 +53,56 @@ def node_id(cls: Any) -> str:
     return "" if ident is None else str(ident)
 
 
-def image_stack(images: list[Any]) -> list[torch.Tensor]:
-    """Turn one tuple of tensors per batch entry into one batch tensor per output.
+def stack_runs(frames: list[torch.Tensor]) -> list[torch.Tensor]:
+    """Stack frames into batches, starting a new batch wherever the frame size changes.
+
+    Frames of one size give one batch, as before; a list of pictures of different sizes gives
+    one batch per run of equal sizes instead of failing to stack.
+
+    Args:
+        frames: Tensors such as ``(H, W, C)`` frames or ``(H, W)`` masks.
+
+    Returns:
+        The batches, in order.
+    """
+    batches: list[torch.Tensor] = []
+    run: list[torch.Tensor] = []
+    for frame in frames:
+        if run and frame.shape != run[-1].shape:
+            batches.append(torch.stack(run))
+            run = []
+        run.append(frame)
+    if run:
+        batches.append(torch.stack(run))
+    return batches
+
+
+def image_stack(images: list[Any]) -> list[list[torch.Tensor]]:
+    """Turn one tuple of tensors per batch entry into one list of batches per output.
+
+    The outputs this feeds are list outputs. Frames that share a size become one batch, so a
+    batch in gives a batch out; differently sized frames (a list of pictures, or settings that
+    change the size per frame) give one batch per run of equal sizes.
 
     Args:
         images: ``[(rgba, rgb, mask), ...]`` or any equal-length tuples of ``(H, W, ...)`` tensors.
 
     Returns:
-        One stacked tensor per position.
+        One list of batches per position.
 
     Raises:
         ValueError: There is nothing to stack.
     """
     if not images:
         raise ValueError("The node produced no images. Connect an input or check its settings.")
-    return [torch.stack(list(parts)) for parts in zip(*images)]
+    outputs: list[list[torch.Tensor]] = [[] for _ in images[0]]
+    run: list[Any] = []
+    for item in images:
+        if run and any(a.shape != b.shape for a, b in zip(item, run[-1])):
+            for out, parts in zip(outputs, zip(*run)):
+                out.append(torch.stack(list(parts)))
+            run = []
+        run.append(item)
+    for out, parts in zip(outputs, zip(*run)):
+        out.append(torch.stack(list(parts)))
+    return outputs

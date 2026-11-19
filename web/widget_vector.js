@@ -1,5 +1,8 @@
 /**
  * The VEC2, VEC3 and VEC4 widget: one field per component, typed, dragged or picked as a colour.
+ *
+ * The same behaviour is installed on the widget a subgraph shows when a vector input inside it
+ * is wired to a subgraph input, so the vector stays editable from outside the subgraph.
  */
 
 import { app } from "../../scripts/app.js"
@@ -49,27 +52,43 @@ function evaluateArithmetic(text) {
     return pos === tokens.length && Number.isFinite(result) ? result : NaN;
 }
 
-function arrayToObject(values, length, parseFn) {
-    const result = {};
-    for (let i = 0; i < length; i++) {
-        result[i] = parseFn(values[i]);
-    }
-    return result;
+const VECTOR_TYPES = new Set(["VEC1", "VEC2", "VEC3", "VEC4"]);
+
+/**
+ * A vector value as a new array, so no two widgets, and no widget and its node definition's
+ * default, ever hold the same object.
+ *
+ * @param {Array|Object|undefined} value - The value, as an array or an {0: x, 1: y} object.
+ * @param {Array} [fallback] - Used when value is missing.
+ * @returns {Array} The components.
+ */
+function vectorCopy(value, fallback = []) {
+    const source = value ?? fallback;
+    if (Array.isArray(source)) return [...source];
+    return source && typeof source == "object" ? Object.values(source) : [...fallback];
 }
 
-function domInnerValueChange(node, pos, widget, value, event=undefined) {
-    //const numtype = widget.type.includes("INT") ? Number : parseFloat
-    widget.value = arrayToObject(value, Object.keys(value).length, widget.convert);
+/**
+ * Give a widget a new value, then tell the node: property binding and callback.
+ *
+ * @param {Object} node - The node the widget sits on.
+ * @param {IWidget} widget - The vector widget.
+ * @param {Array} values - The new components.
+ * @param {Array} [pos] - Pointer position, passed on to the callback.
+ * @param {Event} [event] - Pointer event, passed on to the callback.
+ */
+function applyValue(node, widget, values, pos = undefined, event = undefined) {
+    const options = widget.options ?? {};
+    const convert = (options.rgb || options.int) ? Number : parseFloat;
+    widget.value = vectorCopy(values).map((v) => convert(v));
     if (
         widget.options &&
         widget.options.property &&
-        node.properties[widget.options.property] !== undefined
+        node.properties?.[widget.options.property] !== undefined
         ) {
             node.setProperty(widget.options.property, widget.value)
         }
-    if (widget.callback) {
-        widget.callback(widget.value, app.canvas, node, pos, event)
-    }
+    widget.callback?.(widget.value, app.canvas, node, pos, event);
 }
 
 function colorHex2RGB(hex) {
@@ -94,47 +113,64 @@ function colorRGB2Hex(input) {
     return '#' + hexValues.slice(0, 3).join('') + (hexValues[3] || '');
 }
 
-const VectorWidget = (app, inputName, options, initial) => {
-    const values = options[1]?.default || initial;
-    /** @type {IWidget} */
-    const widget = {
-        name: inputName,
-        type: options[0],
-        y: 0,
-        value: values,
-        options: options[1]
+/**
+ * Settle the display settings of a vector input: precision, step and, for colours, the 0 to
+ * 255 range and channel labels.
+ *
+ * @param {Object} options - The widget's own copy of the input's options.
+ * @returns {Object} The options.
+ */
+function vectorOptions(options) {
+    options.precision = options.precision || 2;
+    options.step = options.step || 0.1;
+    if (options.rgb || options.int) {
+        options.step = 1;
+        options.precision = 0;
     }
-
-    widget.convert = parseFloat;
-    widget.options.precision = widget.options?.precision || 2;
-    widget.options.step = widget.options?.step || 0.1;
-    widget.options.round = 1 / 10 ** widget.options.step;
-
-    if (widget.options?.rgb || widget.options?.int || false) {
-        widget.options.step = 1;
-        widget.options.round = 1;
-        widget.options.precision = 0;
-        widget.convert = Number;
+    if (options.rgb) {
+        options.maj = 255;
+        options.mij = 0;
+        options.label = ['🟥', '🟩', '🟦', 'ALPHA'];
     }
+    return options;
+}
 
-    if (widget.options?.rgb || false) {
-        widget.options.maj = 255;
-        widget.options.mij = 0;
-        widget.options.label = ['🟥', '🟩', '🟦', 'ALPHA'];
-    }
+/**
+ * Keep a component inside the input's range and precision.
+ *
+ * @param {IWidget} widget - The vector widget.
+ * @param {number} v - The component.
+ * @returns {number} The kept value.
+ */
+function clampComponent(widget, v) {
+    const options = widget.options ?? {};
+    v = Math.min(v, options.maj !== undefined ? options.maj : v);
+    v = Math.max(v, options.mij !== undefined ? options.mij : v);
+    return (options.precision == 0) ? Number(v) : parseFloat(parseFloat(v).toFixed(options.precision));
+}
 
-    const offset_y = 4;
-    const widget_padding_left = 13;
-    const widget_padding = 30;
-    const label_full = 72;
-    const label_center = label_full / 2;
+const offset_y = 4;
+const widget_padding_left = 13;
+const widget_padding = 30;
+const label_full = 72;
+const label_center = label_full / 2;
 
+/**
+ * Give a widget object the vector behaviour: drawing, typing, dragging, colour picking and
+ * serialising. Works on the widget this file creates and on the widget a subgraph shows for a
+ * promoted vector input, whose value lives in the frontend's widget store.
+ *
+ * @param {IWidget} widget - The widget; it needs name, type, options and a value.
+ * @returns {IWidget} The same widget.
+ */
+function installVector(widget) {
     /** @type {HTMLInputElement} */
     let picker;
 
     widget.draw = function(ctx, node, width, Y, height) {
-        // if ((app.canvas.ds.scale < 0.50) || (!this.type2.startsWith("VEC") && this.type2 != "COORD2D")) return;
-        if ((app.canvas.ds.scale < 0.50) || (!this.type.startsWith("VEC"))) return;
+        if ((app.canvas.ds.scale < 0.50) || (!String(widget.type).startsWith("VEC"))) return;
+        const label = String(widget.label ?? widget.name ?? "");
+        const options = widget.options ?? {};
         ctx.save()
         ctx.beginPath()
         ctx.lineWidth = 1
@@ -148,33 +184,31 @@ const VectorWidget = (app, inputName, options, initial) => {
 
         // label
         ctx.fillStyle = LiteGraph.WIDGET_SECONDARY_TEXT_COLOR
-        ctx.fillText(inputName, label_center - (inputName.length * 1.5), Y + height / 2 + offset_y)
+        ctx.fillText(label, label_center - (label.length * 1.5), Y + height / 2 + offset_y)
         let x = label_full + 1
 
-        const fields = Object.keys(this?.value || []);
-        let count = fields.length;
-        if (widget.options?.rgb) {
+        const values = vectorCopy(widget.value);
+        let count = values.length;
+        if (options.rgb) {
             count += 0.23;
         }
         const element_width = (width - label_full - widget_padding) / count;
         const element_width2 = element_width / 2;
 
         let converted = [];
-        for (const idx of fields) {
+        for (let idx = 0; idx < values.length; idx++) {
             ctx.save()
             ctx.beginPath()
             ctx.fillStyle = LiteGraph.WIDGET_OUTLINE_COLOR
             // separation bar
-            if (idx != fields.length || (idx == fields.length && !this.options?.rgb)) {
-                ctx.moveTo(x, Y)
-                ctx.lineTo(x, Y+height)
-                ctx.stroke();
-            }
+            ctx.moveTo(x, Y)
+            ctx.lineTo(x, Y+height)
+            ctx.stroke();
 
             // value
             ctx.fillStyle = LiteGraph.WIDGET_TEXT_COLOR
-            const it = this.value[idx.toString()];
-            let value = (widget.options.precision == 0) ? Number(it) : parseFloat(it).toFixed(widget.options.precision);
+            const it = values[idx];
+            let value = (options.precision == 0) ? Number(it) : parseFloat(it).toFixed(options.precision);
             converted.push(value);
             const text = value.toString();
             ctx.fillText(text, x + element_width2 - text.length * 3.3, Y + height/2 + offset_y);
@@ -182,7 +216,7 @@ const VectorWidget = (app, inputName, options, initial) => {
             x += element_width;
         }
 
-        if (this.options?.rgb && converted.length > 2) {
+        if (options.rgb && converted.length > 2) {
             try {
                 ctx.fillStyle = colorRGB2Hex(converted);
             } catch (e) {
@@ -195,59 +229,51 @@ const VectorWidget = (app, inputName, options, initial) => {
         ctx.restore()
     }
 
-    function clamp(widget, v, idx) {
-        v = Math.min(v, widget.options?.maj !== undefined ? widget.options.maj : v);
-        v = Math.max(v, widget.options?.mij !== undefined ? widget.options.mij : v);
-        widget.value[idx] = (widget.options.precision == 0) ? Number(v) : parseFloat(v).toFixed(widget.options.precision);
-    }
-
     /**
      * Click a field to type a value, drag across it to step it, click the label with shift to
      * reset, and click the swatch of a colour widget to pick a colour.
-     *
-     * @this IWidget
      */
     widget.onPointerDown = function (pointer, node, canvas) {
         const e = pointer.eDown
         const x = e.canvasX - node.pos[0] - label_full;
-        const size = Object.keys(this.value).length;
+        const size = vectorCopy(widget.value).length;
         const element_width = (node.size[0] - label_full - widget_padding * 1.25) / size;
         const index = Math.floor(x / element_width);
 
         pointer.onClick = (eUp) => {
+            const options = widget.options ?? {};
             /* if click on header, reset to defaults */
             if (index == -1 && eUp.shiftKey) {
-                widget.value = Object.assign({}, widget.options.default);
+                applyValue(node, widget, vectorCopy(options.default, vectorCopy(widget.value)));
                 return;
             }
             else if (index >= 0 && index < size) {
                 const pos = [eUp.canvasX - node.pos[0], eUp.canvasY - node.pos[1]]
-                const old_value = { ...this.value };
-                const label = this.options?.label ? this.name + '➖' + this.options.label?.[index] : this.name;
+                const old_value = vectorCopy(widget.value);
+                const label = options.label ? widget.name + '➖' + options.label[index] : widget.name;
 
-                (canvas ?? app.canvas).prompt(label, this.value[index], function(v) {
+                (canvas ?? app.canvas).prompt(label, old_value[index], function(v) {
                     const parsed = evaluateArithmetic(v);
                     v = Number.isNaN(parsed) ? old_value[index] : parsed;
 
-                    if (this.value[index] != v) {
-                        setTimeout(
-                            function () {
-                                clamp(this, v, index);
-                                domInnerValueChange(node, pos, this, this.value, eUp);
-                            }.bind(this), 5)
+                    if (old_value[index] != v) {
+                        setTimeout(function () {
+                            const next = vectorCopy(widget.value);
+                            next[index] = clampComponent(widget, v);
+                            applyValue(node, widget, next, pos, eUp);
+                        }, 5)
                     }
-                }.bind(this), eUp);
+                }, eUp);
                 return;
             }
-            if (!this.options?.rgb) return;
+            if (!options.rgb) return;
 
-            const rgba = Object.values(this?.value || []);
+            const rgba = vectorCopy(widget.value);
             const color = colorRGB2Hex(rgba.slice(0, 3));
 
             if (index != size && (x < 0 && rgba.length > 2)) {
-                const target = Object.values(rgba.map((item) => 255 - item)).slice(0, 3);
-                this.value = Object.values(this.value);
-                this.value.splice(0, 3, ...target);
+                const inverted = rgba.slice(0, 3).map((item) => 255 - item);
+                applyValue(node, widget, [...inverted, ...rgba.slice(3)]);
                 return
             }
 
@@ -267,12 +293,10 @@ const VectorWidget = (app, inputName, options, initial) => {
                 picker.addEventListener('blur', () => picker.style.display = 'none')
                 picker.addEventListener('input', () => {
                     if (!picker.value) return;
-
-                    widget.value = colorHex2RGB(picker.value);
-                    if (rgba.length > 3) {
-                        widget.value.push(rgba[3]);
-                    }
-                    canvas.setDirty(true)
+                    // The alpha is read now, not when the picker was first opened.
+                    const current = vectorCopy(widget.value);
+                    applyValue(node, widget, [...colorHex2RGB(picker.value), ...current.slice(3)]);
+                    (canvas ?? app.canvas).setDirty(true)
                 })
             } else {
                 picker.style.display = 'revert'
@@ -289,24 +313,49 @@ const VectorWidget = (app, inputName, options, initial) => {
         pointer.onDrag = (eMove) => {
             if (!eMove.deltaX || !(index > -1)) return;
             if (index >= size) return;
-            let v = parseFloat(this.value[index]);
-            v += this.options.step * Math.sign(eMove.deltaX);
-            clamp(this, v, index);
-            if (widget.callback) {
-                widget.callback(widget.value, app.canvas, node)
-            }
+            const next = vectorCopy(widget.value);
+            const step = (widget.options ?? {}).step || 0.1;
+            next[index] = clampComponent(widget, parseFloat(next[index]) + step * Math.sign(eMove.deltaX));
+            applyValue(node, widget, next);
         }
     }
 
-    widget.serializeValue = async (node, index) => {
-        const rawValues = Array.isArray(widget.value)
-            ? widget.value
-            : Object.values(widget.value);
-        const funct = widget.options?.int ? Number : parseFloat;
-        return rawValues.map(v => funct(v));
+    widget.serializeValue = async () => {
+        const funct = (widget.options ?? {}).int ? Number : parseFloat;
+        return vectorCopy(widget.value).map(v => funct(v));
     };
 
+    Object.defineProperty(widget, "joviVector", { value: true, configurable: true });
     return widget;
+}
+
+const VectorWidget = (app, inputName, options, initial) => {
+    // Each widget gets its own options: VALUE, LERP and the OP nodes retype their vector
+    // widget by writing into its options, which must not reach other nodes of the type.
+    const settings = vectorOptions({ ...(options[1] ?? {}) });
+    /** @type {IWidget} */
+    const widget = {
+        name: inputName,
+        type: options[0],
+        y: 0,
+        value: vectorCopy(settings.default, initial),
+        options: settings,
+    }
+    return installVector(widget);
+}
+
+/**
+ * Install the vector behaviour on the widgets a subgraph node shows for promoted vector inputs.
+ *
+ * @param {Object} node - A subgraph node.
+ */
+function adoptPromotedVectors(node) {
+    for (const input of node.inputs ?? []) {
+        const widget = input._widget;
+        if (widget && !widget.joviVector && VECTOR_TYPES.has(widget.type)) {
+            installVector(widget);
+        }
+    }
 }
 
 app.registerExtension({
@@ -323,5 +372,20 @@ app.registerExtension({
                 widget: node.addCustomWidget(VectorWidget(app, inputName, inputData, [0, 0, 0, 0])),
             })
         }
-    }
+    },
+    nodeCreated(node) {
+        // A subgraph node replaces a promoted input's widget with a plain projection that has
+        // no drawing or pointer handling; give it the vector's own.
+        const events = node.subgraph?.events;
+        if (!events?.addEventListener) return;
+        adoptPromotedVectors(node);
+        const controller = new AbortController();
+        events.addEventListener("widget-promoted", () => adoptPromotedVectors(node),
+                                { signal: controller.signal });
+        const onRemoved = node.onRemoved;
+        node.onRemoved = function () {
+            controller.abort();
+            return onRemoved?.apply(this, arguments);
+        };
+    },
 })

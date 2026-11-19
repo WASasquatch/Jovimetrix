@@ -67,6 +67,41 @@ def parse_dynamic(data: InputType, prefix: str, typ: EnumConvertType, default: A
     return vals
 
 
+def single_frame(tensor: TensorType) -> bool:
+    """Whether a tensor is one picture with no batch dimension.
+
+    ComfyUI passes pictures as ``(B, H, W, C)`` and masks as ``(B, H, W)``, but some nodes hand
+    on a single mask as ``(H, W)`` or a single picture as ``(H, W, C)``. A three dimensional
+    tensor whose last dimension is 1, 3 or 4 is read as one picture: a mask batch that narrow
+    does not occur in practice.
+
+    Args:
+        tensor: The tensor.
+
+    Returns:
+        True for ``(H, W)`` and ``(H, W, 1|3|4)``.
+    """
+    return tensor.ndim == 2 or (tensor.ndim == 3 and tensor.shape[-1] in (1, 3, 4))
+
+
+def tensor_frames(tensor: TensorType) -> list[TensorType]:
+    """Split a picture or mask tensor into ``(H, W, C)`` frames.
+
+    Args:
+        tensor: ``(B, H, W, C)``, ``(B, H, W)``, or a single ``(H, W)`` or ``(H, W, C)``.
+
+    Returns:
+        One frame per picture; masks gain a channel dimension of 1.
+    """
+    if tensor.ndim >= 4:
+        return list(tensor)
+    if single_frame(tensor):
+        return [tensor.unsqueeze(-1) if tensor.ndim == 2 else tensor]
+    if tensor.ndim == 3:
+        return [t.unsqueeze(-1) for t in tensor]
+    return [tensor]
+
+
 def _solid_image(val: Any) -> TensorType:
     """Build a small RGBA image filled with a colour read from ``val``."""
     color = parse_value(val, EnumConvertType.VEC4INT, (0, 0, 0, 255), 0, 255)
@@ -312,9 +347,12 @@ def parse_param_list(values: Any, typ: EnumConvertType, default: Any,
                 val = tuple()
             value_array.append(val)
         elif isinstance(val, torch.Tensor):
-            if val.ndim == 3:
-                val = [t.unsqueeze(-1) for t in val]
-            value_array.extend([t for t in val])
+            if val.ndim >= 2:
+                value_array.extend(tensor_frames(val))
+            elif val.ndim == 1:
+                value_array.extend(val)
+            else:
+                value_array.append(val)
         elif isinstance(val, (list, tuple, set)):
             value_array.append(list(val))
         elif isinstance(val, Enum):

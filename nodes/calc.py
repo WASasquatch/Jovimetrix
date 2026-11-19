@@ -16,7 +16,7 @@ from ..modules import log
 from ..modules.enums import \
     EnumBinaryOperation, EnumComparison, EnumConvertString, EnumConvertType, EnumSwizzle, \
     EnumUnaryOperation
-from ..modules.node import Progress, category
+from ..modules.node import Progress, category, stack_runs
 from ..modules.params import parse_dynamic, parse_param, parse_value, zip_longest_fill
 from ..modules.types import FULL_TYPES, NUMERICAL_TYPES, VEC3, VEC4
 
@@ -281,8 +281,8 @@ class ComparisonNode(io.ComfyNode):
             vals.append(val)
             pbar.update(idx)
 
-        if outs and isinstance(outs[0], torch.Tensor):
-            outs = [torch.stack(outs) if len(outs) > 1 else outs[0].unsqueeze(0)]
+        if outs and all(isinstance(o, torch.Tensor) for o in outs):
+            outs = stack_runs(outs)
         return io.NodeOutput(outs, vals)
 
 

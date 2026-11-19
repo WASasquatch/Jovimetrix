@@ -19,7 +19,7 @@ from ...modules import log, sandbox
 from ...modules.enums import EnumBatchMode, EnumConvertType, EnumInterpolation, EnumScaleMode
 from ...modules.limits import MAX_QUEUE_ENTRIES, MAX_QUEUE_FILE_BYTES, check_batch, check_canvas
 from ...modules.node import Progress, category, node_id
-from ...modules.params import IMAGE_SIZE_MIN, parse_dynamic, parse_param
+from ...modules.params import IMAGE_SIZE_MIN, parse_dynamic, parse_param, single_frame, tensor_frames
 from ...modules.types import VEC2, VEC3, VEC4
 
 logger = log.get_logger("batch")
@@ -107,8 +107,7 @@ class ArrayNode(io.ComfyNode):
             elif isinstance(b, torch.Tensor):
                 if output_type and output_type not in (EnumConvertType.IMAGE, EnumConvertType.MASK):
                     raise ValueError("ARRAY cannot mix pictures with other inputs. Wire one kind only.")
-                for x in ([i for i in b] if b.ndim == 4 else [b]):
-                    data.append(x.unsqueeze(-1) if x.ndim == 2 else x)
+                data.extend(tensor_frames(b))
                 output_type = EnumConvertType.IMAGE
             elif b is not None:
                 if output_type and output_type != type(b):
@@ -202,7 +201,9 @@ class BatchToList(io.ComfyNode):
         items: list[Any] = []
         for value in kw.get("batch", []) or []:
             if isinstance(value, torch.Tensor):
-                if value.ndim in (3, 4):
+                if single_frame(value):
+                    items.append(value.unsqueeze(0))
+                elif value.ndim in (3, 4):
                     items.extend(t.unsqueeze(0) for t in value)
                 else:
                     items.append(value)
@@ -277,7 +278,8 @@ def parse_queue(text: str, recurse: bool = False) -> list[Any]:
     """Turn the queue text into its entries.
 
     Each line is a value, a file, a folder of pictures, a ``.txt`` list, or a folder and
-    patterns such as ``input/frames;*.png;*.jpg``. Paths are held to the readable folders.
+    patterns such as ``input/frames;*.png;*.jpg``. Paths are held to the readable folders. A web
+    address is kept as text and never downloaded.
 
     Args:
         text: The queue text, one entry per line.
@@ -287,6 +289,7 @@ def parse_queue(text: str, recurse: bool = False) -> list[Any]:
         The entries; numbers as floats, files as resolved paths.
     """
     from ...modules.image import image_formats
+    from ...modules.image.io import is_web_address
 
     formats = set(image_formats())
     entries: list[Any] = []
@@ -294,7 +297,7 @@ def parse_queue(text: str, recurse: bool = False) -> list[Any]:
         line = line.strip()
         if not line:
             continue
-        if line.lower().startswith(("http://", "https://")):
+        if is_web_address(line):
             entries.append(line)
             continue
 
@@ -338,8 +341,13 @@ def parse_queue(text: str, recurse: bool = False) -> list[Any]:
 
 
 def _load_entry(state: _QueueState, entry: Any) -> Any:
-    """Decode a queue entry: pictures become frames, JSON files become data."""
-    if not isinstance(entry, str):
+    """Decode a queue entry: pictures become frames, JSON files become data.
+
+    A web address passes through as text; nothing is downloaded.
+    """
+    from ...modules.image.io import is_web_address
+
+    if not isinstance(entry, str) or is_web_address(entry):
         return entry
     if (cached := state.cache.get(entry)) is not None:
         state.cache.move_to_end(entry)
@@ -347,14 +355,13 @@ def _load_entry(state: _QueueState, entry: Any) -> Any:
 
     from ...modules.image import image_formats
 
-    ext = os.path.splitext(entry.split("?")[0])[1].lower()
+    ext = os.path.splitext(entry)[1].lower()
     value = entry
     if ext in image_formats():
         from ...modules.image.io import image_load
 
-        source = entry if entry.lower().startswith(("http://", "https://")) else str(sandbox.resolve_read(entry))
-        value = image_load(source)[0]
-    elif ext == ".json" and not entry.lower().startswith(("http://", "https://")):
+        value = image_load(str(sandbox.resolve_read(entry)))[0]
+    elif ext == ".json":
         path = sandbox.resolve_read(entry)
         if path.stat().st_size > MAX_QUEUE_FILE_BYTES:
             raise ValueError(f"'{path.name}' is too large to load as a queue entry.")
@@ -389,18 +396,23 @@ QUEUE_INPUTS = [
 ]
 
 
-def run_queue(cls, kw: dict) -> tuple[Any, list, Any, int, int, bool]:
+def run_queue(cls, kw: dict, pictures: bool = False) -> tuple[Any, list, Any, int, int, bool]:
     """Advance a queue node one run.
 
     Args:
         cls: The per-run node class.
         kw: The node's keyword inputs.
+        pictures: Refuse a list holding a web address, since it can never load as a picture.
 
     Returns:
         ``(data, queue, current, index, total, trigger)``.
+
+    Raises:
+        ValueError: ``pictures`` is set and the list holds a web address.
     """
 
     from ...modules import messages
+    from ...modules.image.io import is_web_address
 
     ident = node_id(cls)
     state = _queue_state(ident)
@@ -430,6 +442,11 @@ def run_queue(cls, kw: dict) -> tuple[Any, list, Any, int, int, bool]:
 
     if state.length == 0:
         raise ValueError("The queue is empty. Type at least one value, file or folder into 'queue'.")
+
+    if pictures and (web := next((e for e in state.queue if isinstance(e, str) and is_web_address(e)), None)):
+        raise ValueError(f"QUEUE TOO does not download web addresses such as '{web[:80]}'. Put the "
+                         "picture in ComfyUI's input folder, for example by dragging it from the "
+                         "browser onto a Load Image node, and list its file name instead.")
 
     stop = parse_param(kw, "stop", EnumConvertType.BOOLEAN, False)[0]
     if stop and state.index >= state.length:
@@ -499,7 +516,7 @@ def run_queue(cls, kw: dict) -> tuple[Any, list, Any, int, int, bool]:
 
         interrupt_processing()
     trigger = state.index == state.length or batched
-    return data, state.queue, state.current, state.index, state.length, trigger
+    return data, state.queue, state.current, state.index_last + 1, state.length, trigger
 
 
 QUEUE_DESCRIPTION_TAIL = ("Each run steps to the next entry; select jumps, hold pauses, and reset "
@@ -530,7 +547,7 @@ class QueueNode(io.ComfyNode):
                 io.String.Output("CURRENT", display_name="CURRENT",
                                  tooltip="The current entry as text, such as its file path."),
                 io.Int.Output("INDEX", display_name="INDEX",
-                              tooltip="Position of the next entry, counted from 1."),
+                              tooltip="Position of the current entry, counted from 1."),
                 io.Int.Output("TOTAL", display_name="TOTAL", tooltip="How many entries the list holds."),
                 io.Boolean.Output("TRIGGER", display_name="TRIGGER",
                                   tooltip="True on the run that reaches the end of the list."),
@@ -585,7 +602,7 @@ class QueueTooNode(io.ComfyNode):
                 io.Mask.Output("MASK", display_name="MASK", tooltip="The picture's alpha as a mask."),
                 io.String.Output("CURRENT", display_name="CURRENT", tooltip="The current file path."),
                 io.Int.Output("INDEX", display_name="INDEX",
-                              tooltip="Position of the next entry, counted from 1."),
+                              tooltip="Position of the current entry, counted from 1."),
                 io.Int.Output("TOTAL", display_name="TOTAL", tooltip="How many entries the list holds."),
                 io.Boolean.Output("TRIGGER", display_name="TRIGGER",
                                   tooltip="True on the run that reaches the end of the list."),
@@ -600,7 +617,7 @@ class QueueTooNode(io.ComfyNode):
     def execute(cls, **kw) -> io.NodeOutput:
         from ...modules.image.convert import frame_outputs, to_frame
 
-        data, _, current, index, total, trigger = run_queue(cls, kw)
+        data, _, current, index, total, trigger = run_queue(cls, kw, pictures=True)
         if not isinstance(data, torch.Tensor):
             name = os.path.basename(str(current)) if current is not None else ""
             raise ValueError(f"QUEUE TOO's entry '{name[:80]}' is not a picture it can load. List "

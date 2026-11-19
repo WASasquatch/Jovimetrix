@@ -29,9 +29,9 @@ Soften a picture with a box, stack, Gaussian or median blur. Median blur removes
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -48,9 +48,9 @@ Shift a picture's three colour channels in RGB, HSV, YUV, LAB, LUV or XYZ space.
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -69,9 +69,9 @@ Find the edges in a picture with Canny, Sobel, Laplacian, Prewitt, Scharr or a m
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -89,9 +89,9 @@ Turn a picture into a raised relief lit from one direction. Useful for stamped, 
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -110,9 +110,9 @@ Set a picture's black point, midtone and white point by hand, or stretch each ch
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -132,9 +132,9 @@ Tonal adjustments applied in order: brightness, contrast, histogram equalisation
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -152,9 +152,9 @@ Grow, shrink, open or close the shapes in a picture or mask. Use it to thicken a
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -171,9 +171,9 @@ Pixel-level effects: pixelate into blocks, rescale for a retro look, reduce to f
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -190,9 +190,9 @@ Sharpen a picture with an unsharp mask. The threshold leaves flat, low-contrast 
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -404,9 +404,9 @@ Show how a picture looks to someone with red, green or blue colour blindness. Ch
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -429,9 +429,9 @@ Recolour a picture to match a target picture's palette, or map its tones through
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -451,7 +451,7 @@ Find a picture's most used colours and hand them on as swatches, a tonal palette
 | Output | Type | Description |
 |---|---|---|
 | `IMAGE` | IMAGE | One solid swatch per colour, most used first, as a batch. |
-| `PALETTE` | IMAGE | One row per colour, fading to black; as wide as the input. |
+| `PALETTE` | IMAGE list | One row per colour, fading to black; as wide as the input. Inputs of different widths give one batch per width. |
 | `GRADIENT` | IMAGE | The colours blended into one left-to-right gradient. |
 | `LUT` | JLUT | A 3D LUT mapping every colour to its nearest dominant colour. |
 | `RGB` | IMAGE | A picture of the LUT, one tile per blue level. |
@@ -472,11 +472,11 @@ Build a colour harmony, such as complementary, triadic or analogous, from a pict
 
 | Output | Type | Description |
 |---|---|---|
-| `C1` | IMAGE | The picture's average colour. |
-| `C2` | IMAGE | First harmony colour. |
-| `C3` | IMAGE | Second harmony colour, black when the scheme has one colour. |
-| `C4` | IMAGE | Third harmony colour, black when the scheme has fewer. |
-| `C5` | IMAGE | Fourth harmony colour, black when the scheme has fewer. |
+| `C1` | IMAGE list | The picture's average colour. |
+| `C2` | IMAGE list | First harmony colour. |
+| `C3` | IMAGE list | Second harmony colour, black when the scheme has one colour. |
+| `C4` | IMAGE list | Third harmony colour, black when the scheme has fewer. |
+| `C5` | IMAGE list | Fourth harmony colour, black when the scheme has fewer. |
 
 </details>
 
@@ -497,9 +497,9 @@ Recolour a picture by its brightness: dark tones take the gradient's left colour
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -527,9 +527,9 @@ Layer a foreground over a background with one of thirty blend modes, such as mul
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -549,9 +549,9 @@ Make a mask from the pixels close to one colour, or between two colours. Use it 
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -567,9 +567,9 @@ Draw a picture's brightness histogram: how many pixels sit at each level from bl
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -591,9 +591,9 @@ Build a picture from separate red, green, blue and alpha planes, filling any mis
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -608,11 +608,11 @@ Split a picture into its red, green, blue and alpha channels as masks, plus its 
 
 | Output | Type | Description |
 |---|---|---|
-| `❤️` | MASK | The red channel as a mask. |
-| `💚` | MASK | The green channel as a mask. |
-| `💙` | MASK | The blue channel as a mask. |
-| `🤍` | MASK | The alpha channel as a mask; white when the picture has no alpha. |
-| `RGB` | IMAGE | The picture without its alpha. |
+| `❤️` | MASK list | The red channel as a mask. |
+| `💚` | MASK list | The green channel as a mask. |
+| `💙` | MASK list | The blue channel as a mask. |
+| `🤍` | MASK list | The alpha channel as a mask; white when the picture has no alpha. |
+| `RGB` | IMAGE list | The picture without its alpha. |
 
 </details>
 
@@ -633,9 +633,9 @@ Build a picture whose red, green, blue and alpha each come from any channel of p
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -655,9 +655,9 @@ Cut a picture into light and dark at a threshold, either one level for the whole
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -679,9 +679,9 @@ Make a solid colour picture of any size, or place a picture over a colour throug
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -705,9 +705,9 @@ Draw a circle, square or regular polygon of any size, position, angle and softne
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -719,7 +719,7 @@ Render text into a picture with any installed font, aligned, justified, rotated 
 | Input | Type | Default | Range or options | Description |
 |---|---|---|---|---|
 | `string` | STRING | jovimetrix |  | The text to draw. Each line break starts a new line. |
-| `font` | COMBO | Arial | menu of 563 | Font family, from the fonts installed on this machine. 'default' is the built-in font; a font missing here falls back to the default. |
+| `font` | COMBO | Arial | menu of 535 | Font family, from the fonts installed on this machine. 'default' is the built-in font; a font missing here falls back to the default. |
 | `letter` | BOOLEAN | False |  | Draw each character as its own picture, as a batch. |
 | `autosize` | BOOLEAN | False |  | Size the text to fill wh, ignoring size. |
 | `color` | VEC4 | (255, 255, 255, 255) | colour, 0 to 255 | Colour of the letters, RGBA 0 to 255. |
@@ -738,9 +738,9 @@ Render text into a picture with any installed font, aligned, justified, rotated 
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -763,9 +763,9 @@ Cut a region out of a picture: a centred window, a window at a position, or any 
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -784,9 +784,9 @@ Add every picture wired into its growing image inputs, and every frame of each b
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -807,8 +807,8 @@ Cut a picture in two at a chosen point, top and bottom or left and right. Separa
 
 | Output | Type | Description |
 |---|---|---|
-| `IMAGEA` | IMAGE | The top or left part. |
-| `IMAGEB` | IMAGE | The bottom or right part. |
+| `IMAGEA` | IMAGE list | The top or left part. |
+| `IMAGEB` | IMAGE list | The bottom or right part. |
 
 </details>
 
@@ -828,9 +828,9 @@ Place every picture wired into its growing image inputs, and every frame of each
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -861,9 +861,9 @@ Move, rotate, scale, tile and mirror a picture, then optionally project it throu
 
 | Output | Type | Description |
 |---|---|---|
-| `RGBA` | IMAGE | The picture with its alpha channel. Where there is alpha, it masks the picture. |
-| `RGB` | IMAGE | The picture as three colour channels, with no alpha. |
-| `MASK` | MASK | The alpha channel as a mask: white where the picture is opaque. |
+| `RGBA` | IMAGE list | The picture with its alpha channel. Where there is alpha, it masks the picture. |
+| `RGB` | IMAGE list | The picture as three colour channels, with no alpha. |
+| `MASK` | MASK list | The alpha channel as a mask: white where the picture is opaque. |
 
 </details>
 
@@ -931,7 +931,7 @@ Step through a list of pictures, one per run, handing each on as RGBA, RGB and m
 | `RGB` | IMAGE | The picture without alpha. |
 | `MASK` | MASK | The picture's alpha as a mask. |
 | `CURRENT` | STRING | The current file path. |
-| `INDEX` | INT | Position of the next entry, counted from 1. |
+| `INDEX` | INT | Position of the current entry, counted from 1. |
 | `TOTAL` | INT | How many entries the list holds. |
 | `TRIGGER` | BOOLEAN | True on the run that reaches the end of the list. |
 
@@ -958,7 +958,7 @@ Step through a list of values, files or folders, one entry per run. Pictures and
 | `❔` | * | The current entry, loaded: a picture, JSON data, text or a number. |
 | `QUEUE` | * | The whole list of entries. |
 | `CURRENT` | STRING | The current entry as text, such as its file path. |
-| `INDEX` | INT | Position of the next entry, counted from 1. |
+| `INDEX` | INT | Position of the current entry, counted from 1. |
 | `TOTAL` | INT | How many entries the list holds. |
 | `TRIGGER` | BOOLEAN | True on the run that reaches the end of the list. |
 

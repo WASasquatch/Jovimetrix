@@ -20,10 +20,15 @@ logger = log.get_logger("config")
 DEFAULTS: dict[str, Any] = {
     "allow_read": [],
     "allow_write": [],
-    "allow_network": False,
     "gifski": "",
     "delay_min": 5,
     "delay_max": 10000000,
+}
+
+#: Keys earlier versions read, with why they are now ignored.
+RETIRED = {
+    "allow_network": "Jovimetrix no longer downloads web addresses; put files in ComfyUI's input "
+                     "folder or a folder in allow_read",
 }
 
 #: Environment variable overriding a key.
@@ -87,6 +92,9 @@ def _read_file(path: Path) -> dict[str, Any]:
         logger.warning("config.json does not hold a JSON object, using the defaults")
         return values
     for key, value in data.items():
+        if key in RETIRED:
+            logger.info("config.json key '%s' is ignored: %s", key, RETIRED[key])
+            continue
         if key not in DEFAULTS:
             logger.warning("config.json key '%s' is not a Jovimetrix setting and is ignored", key)
             continue
